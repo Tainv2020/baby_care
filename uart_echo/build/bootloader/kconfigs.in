@@ -1,0 +1,7 @@
+source "D:/learning/deviot/esp32_idf/esp_idf/components/efuse/Kconfig"
+source "D:/learning/deviot/esp32_idf/esp_idf/components/esp32/Kconfig"
+source "D:/learning/deviot/esp32_idf/esp_idf/components/esp_common/Kconfig"
+source "D:/learning/deviot/esp32_idf/esp_idf/components/esp_system/Kconfig"
+source "D:/learning/deviot/esp32_idf/esp_idf/components/log/Kconfig"
+source "D:/learning/deviot/esp32_idf/esp_idf/components/newlib/Kconfig"
+source "D:/learning/deviot/esp32_idf/esp_idf/components/spi_flash/Kconfig"
