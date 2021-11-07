@@ -24,6 +24,7 @@ static const char *TAG_UART_SIM800 = "SIM800";
 
 /* AT command */
 uint8_t AT[] = "AT\r\n";
+uint8_t AT_NO_RESPOND[] = "ATE0\r\n";
 uint8_t AT1[] = "AT+SAPBR=3,1,\"Contype\",\"GPRS\"\r\n";
 uint8_t AT2[] = "AT+SAPBR=3,1,\"APN\",\"airtelgprs.com\"\r\n";
 uint8_t AT3[] = "AT+SAPBR=1,1\r\n";
@@ -37,7 +38,12 @@ char AT10[500];
 uint8_t AT11[] = "AT+HTTPACTION=1\r\n";
 uint8_t AT12[] = "AT+HTTPREAD\r\n";
 uint8_t AT13[] = "AT+HTTPTERM\r\n";
-uint8_t AT_NO_RESPOND[] = "ATE0\r\n";
+
+uint8_t AT_GET1[] = "AT+HTTPPARA=\"URL\",\"http://bc-api.gl-sci.com/api/Common/GetConfigData/hub00001/123456\"\r\n";
+uint8_t AT_GET2[] = "AT+HTTPACTION=0\r\n";
+uint8_t AT_GET3[] = "AT+HTTPSSL=1\r\n";
+uint8_t AT_GET4[] = "AT+HTTPSSL?\r\n";
+
 
 static QueueHandle_t uart0_queue;
 static uint8_t uart_rx_buf[RX_BUF_SIZE];
@@ -117,7 +123,6 @@ void app_uart_init(void)
     xTaskCreate(uart_event_task, "uart_event_task", 2048, NULL, 12, NULL);
 }
 
-
 void app_uart_set_data_callback(app_uart_data_cb_t cb)
 {
     app_uart_data_cb = cb;
@@ -184,6 +189,14 @@ void app_uart_post(uint8_t temp, uint8_t battery)
     char body[500];
     sprintf(body, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"C9:AD:7F:93:4C:DE\",\"dataTypeID\": 1,\"dataValue\": %d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"}\r\n", temp, battery);
 
+    uart_write_bytes(UART1, (const char *) AT1, sizeof(AT1));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT2, sizeof(AT2));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT3, sizeof(AT3));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT4, sizeof(AT4));
+    vTaskDelay(DELAY_TIME);
     uart_write_bytes(UART1, (const char *) AT5, sizeof(AT5));
     vTaskDelay(DELAY_TIME);
     uart_write_bytes(UART1, (const char *) AT6, sizeof(AT6));
@@ -202,4 +215,25 @@ void app_uart_post(uint8_t temp, uint8_t battery)
     uart_write_bytes(UART1, (const char *) AT12, sizeof(AT12));
     vTaskDelay(DELAY_TIME);
     uart_write_bytes(UART1, (const char *) AT13, sizeof(AT13));
+}
+
+void app_uart_get(void)
+{
+    uart_write_bytes(UART1, (const char *) AT1, sizeof(AT1));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT2, sizeof(AT2));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT3, sizeof(AT3));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT4, sizeof(AT4));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT5, sizeof(AT5));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT6, sizeof(AT6));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT_GET1, sizeof(AT_GET1));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT_GET2, sizeof(AT_GET2));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT12, sizeof(AT12));
 }

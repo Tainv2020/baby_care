@@ -15,7 +15,6 @@
 static const char *TAG = "MAIN_APP";
 static uint8_t index_for_connected_to_peer = 0;
 extern ble_device_inst_t ble_device_table[GATTS_SUPPORT];
-static bool g_init_sim800_done = false;
 
 esp_bd_addr_t device1 = {0xC9,0xAD,0x7F,0x93,0x4C,0xDE};
 esp_bd_addr_t device2 = {0xFB,0x0B,0x2B,0x97,0xEA,0x0E};
@@ -90,7 +89,7 @@ void vTimerCallback( TimerHandle_t pxTimer )
 
      // Which timer expired?
     lArrayIndex = ( int32_t ) pvTimerGetTimerID( pxTimer ); 
-    if((lArrayIndex == 0) && g_init_sim800_done)
+    if(lArrayIndex == 0)
     {
         ESP_LOGE(TAG,"Timeout. Can't connect to device");
         ESP_LOGW(TAG,"Try next..");
@@ -127,17 +126,9 @@ void vTimerCallback( TimerHandle_t pxTimer )
             }
         }  
     }  
-    else if((lArrayIndex == 1) && g_init_sim800_done)
+    else if(lArrayIndex == 1)
     {
         ESP_LOGE(TAG,"Start scan ble");
-        app_ble_start_scan(10);
-    }
-    else if(lArrayIndex == 2)
-    {
-        ESP_LOGE(TAG,"Init sim800");
-        /* Init sim800 */
-        app_uart_sim800_init();
-        /* start timer 0 to connect device ble */
         app_ble_start_scan(10);
     }
 }
@@ -169,9 +160,7 @@ void app_main(void)
     /* Init UART0 */
     app_uart_init();
     /* Init uart for module sim800 */
-    app_uart1_sim800_init(UART1, 115200, TXD_UART1_PIN, RXD_UART1_PIN, 13);
-    /* Start timer init sim800 */
-    timeout_for_start_init_sim800();
+    app_uart1_sim800_init(UART1, 115200, TXD_UART1_PIN, RXD_UART1_PIN, 13);\
     /* Call back function UART1 */
     app_uart_set_data_callback(app_uart_rx_data_callback);
 
@@ -192,4 +181,7 @@ void app_main(void)
     {
         app_ble_set_device_to_connect(ble_device_table[index_for_connected_to_peer].ble_addr);
     }
+
+    /* Start timer1 to connect devices */
+    time_wait_to_connect_device_next_start();
 }
