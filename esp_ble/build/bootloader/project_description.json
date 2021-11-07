@@ -1,0 +1,20 @@
+{
+    "project_name":       "bootloader",
+    "project_path":       "D:/learning/deviot/esp32_idf/esp_idf/components/bootloader/subproject",
+    "build_dir":          "D:/learning/deviot/esp32_idf/project/baby_care/baby_care/esp_ble/build/bootloader",
+    "config_file":        "D:/learning/deviot/esp32_idf/project/baby_care/baby_care/esp_ble/sdkconfig",
+    "config_defaults":    "",
+    "app_elf":            "bootloader.elf",
+    "app_bin":            "bootloader.bin",
+    "git_revision":       "v4.3",
+    "target":             "esp32",
+    "phy_data_partition": "",
+    "monitor_baud" :      "115200",
+    "monitor_toolprefix": "xtensa-esp32-elf-",
+    "config_environment" : {
+        "COMPONENT_KCONFIGS" : "D:/learning/deviot/esp32_idf/esp_idf/components/efuse/Kconfig;D:/learning/deviot/esp32_idf/esp_idf/components/esp32/Kconfig;D:/learning/deviot/esp32_idf/esp_idf/components/esp_common/Kconfig;D:/learning/deviot/esp32_idf/esp_idf/components/esp_system/Kconfig;D:/learning/deviot/esp32_idf/esp_idf/components/log/Kconfig;D:/learning/deviot/esp32_idf/esp_idf/components/newlib/Kconfig;D:/learning/deviot/esp32_idf/esp_idf/components/spi_flash/Kconfig",
+        "COMPONENT_KCONFIGS_PROJBUILD" : "D:/learning/deviot/esp32_idf/esp_idf/components/bootloader/Kconfig.projbuild;D:/learning/deviot/esp32_idf/esp_idf/components/esptool_py/Kconfig.projbuild;D:/learning/deviot/esp32_idf/esp_idf/components/partition_table/Kconfig.projbuild"
+    },
+    "build_components" : [ "bootloader", "bootloader_support", "efuse", "esp32", "esp_common", "esp_hw_support", "esp_rom", "esp_system", "esptool_py", "hal", "log", "main", "micro-ecc", "newlib", "partition_table", "soc", "spi_flash", "xtensa", "" ],
+    "build_component_paths" : [ "D:/learning/deviot/esp32_idf/esp_idf/components/bootloader", "D:/learning/deviot/esp32_idf/esp_idf/components/bootloader_support", "D:/learning/deviot/esp32_idf/esp_idf/components/efuse", "D:/learning/deviot/esp32_idf/esp_idf/components/esp32", "D:/learning/deviot/esp32_idf/esp_idf/components/esp_common", "D:/learning/deviot/esp32_idf/esp_idf/components/esp_hw_support", "D:/learning/deviot/esp32_idf/esp_idf/components/esp_rom", "D:/learning/deviot/esp32_idf/esp_idf/components/esp_system", "D:/learning/deviot/esp32_idf/esp_idf/components/esptool_py", "D:/learning/deviot/esp32_idf/esp_idf/components/hal", "D:/learning/deviot/esp32_idf/esp_idf/components/log", "D:/learning/deviot/esp32_idf/esp_idf/components/bootloader/subproject/main", "D:/learning/deviot/esp32_idf/esp_idf/components/bootloader/subproject/components/micro-ecc", "D:/learning/deviot/esp32_idf/esp_idf/components/newlib", "D:/learning/deviot/esp32_idf/esp_idf/components/partition_table", "D:/learning/deviot/esp32_idf/esp_idf/components/soc", "D:/learning/deviot/esp32_idf/esp_idf/components/spi_flash", "D:/learning/deviot/esp32_idf/esp_idf/components/xtensa", "" ]
+}
