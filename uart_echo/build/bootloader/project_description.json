@@ -1,8 +1,8 @@
 {
     "project_name":       "bootloader",
     "project_path":       "D:/learning/deviot/esp32_idf/esp_idf/components/bootloader/subproject",
-    "build_dir":          "D:/learning/deviot/esp32_idf/project/babyCare/uart_echo/build/bootloader",
-    "config_file":        "D:/learning/deviot/esp32_idf/project/babyCare/uart_echo/sdkconfig",
+    "build_dir":          "D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo/build/bootloader",
+    "config_file":        "D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo/sdkconfig",
     "config_defaults":    "",
     "app_elf":            "bootloader.elf",
     "app_bin":            "bootloader.bin",
