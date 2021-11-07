@@ -1,4 +1,4 @@
-# Install script for directory: D:/learning/deviot/esp32_idf/project/babyCare/uart_echo
+# Install script for directory: D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -34,7 +34,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("D:/learning/deviot/esp32_idf/project/babyCare/uart_echo/build/esp-idf/cmake_install.cmake")
+  include("D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo/build/esp-idf/cmake_install.cmake")
 
 endif()
 
@@ -46,5 +46,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "D:/learning/deviot/esp32_idf/project/babyCare/uart_echo/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

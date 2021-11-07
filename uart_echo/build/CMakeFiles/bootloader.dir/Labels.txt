@@ -1,13 +1,13 @@
 # Target labels
  bootloader
 # Source files and their labels
-D:/learning/deviot/esp32_idf/project/babyCare/uart_echo/build/CMakeFiles/bootloader
-D:/learning/deviot/esp32_idf/project/babyCare/uart_echo/build/CMakeFiles/bootloader.rule
-D:/learning/deviot/esp32_idf/project/babyCare/uart_echo/build/CMakeFiles/bootloader-complete.rule
-D:/learning/deviot/esp32_idf/project/babyCare/uart_echo/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
-D:/learning/deviot/esp32_idf/project/babyCare/uart_echo/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
-D:/learning/deviot/esp32_idf/project/babyCare/uart_echo/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
-D:/learning/deviot/esp32_idf/project/babyCare/uart_echo/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
-D:/learning/deviot/esp32_idf/project/babyCare/uart_echo/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
-D:/learning/deviot/esp32_idf/project/babyCare/uart_echo/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
-D:/learning/deviot/esp32_idf/project/babyCare/uart_echo/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
+D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo/build/CMakeFiles/bootloader
+D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo/build/CMakeFiles/bootloader.rule
+D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo/build/CMakeFiles/bootloader-complete.rule
+D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
+D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule

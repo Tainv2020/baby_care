@@ -1,4 +1,4 @@
-# Install script for directory: D:/learning/deviot/esp32_idf/project/babyCare/uart_echo/tainv_library/http_request
+# Install script for directory: D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo/tainv_library/http_request
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

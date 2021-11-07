@@ -34,7 +34,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("D:/learning/deviot/esp32_idf/project/babyCare/uart_echo/build/esp-idf/esp_hw_support/port/esp32/cmake_install.cmake")
+  include("D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo/build/esp-idf/esp_hw_support/port/esp32/cmake_install.cmake")
 
 endif()
 

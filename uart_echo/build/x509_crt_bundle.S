@@ -1,4 +1,4 @@
-/* * Data converted from D:/learning/deviot/esp32_idf/project/babyCare/uart_echo/build/esp-idf/mbedtls/x509_crt_bundle
+/* * Data converted from D:/learning/deviot/esp32_idf/project/baby_care/baby_care/uart_echo/build/esp-idf/mbedtls/x509_crt_bundle
  */
 .data
 .section .rodata.embedded
