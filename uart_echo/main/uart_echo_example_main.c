@@ -55,7 +55,7 @@ uint8_t AT3[] = "AT+SAPBR=1,1\r\n";
 uint8_t AT4[] = "AT+SAPBR=2,1\r\n";
 uint8_t AT5[] = "AT+HTTPINIT\r\n";
 uint8_t AT6[] = "AT+HTTPPARA=\"CID\",1\r\n";
-uint8_t AT7[] = "AT+HTTPPARA=\"URL\",\"http://bc-api.gl-sci.com/api/Common/GetConfigData/hub00001/123456\"\r\n";
+uint8_t AT7[] = "AT+HTTPPARA=\"URL\",\"http://bc-api.gl-sci.com/api/Common/GetDeviceList/hub00001/123456\"\r\n";
 uint8_t AT8[] = "AT+HTTPPARA=\"CONTENT\",\"application/json\"\r\n";
 uint8_t AT9[] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"C9:AD:7F:93:4C:DE\",\"dataTypeID\": 1,\"dataValue\": 33,\"batteryValue\": 22,\"isWarning\": false,\"securityKey\": \"123456\"}\r\n";
 char AT10[500];
@@ -111,14 +111,24 @@ void sim800_init(void)
 
 void sim800_get(void)
 {
+    uart_write_bytes(UART1, (const char *) AT1, sizeof(AT1));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT2, sizeof(AT2));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT3, sizeof(AT3));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT4, sizeof(AT4));
+    vTaskDelay(DELAY_TIME);
     uart_write_bytes(UART1, (const char *) AT5, sizeof(AT5));
     vTaskDelay(DELAY_TIME);
     uart_write_bytes(UART1, (const char *) AT6, sizeof(AT6));
     vTaskDelay(DELAY_TIME);
     uart_write_bytes(UART1, (const char *) AT7, sizeof(AT7));
     vTaskDelay(DELAY_TIME);
-    uart_write_bytes(UART1, (const char *) AT11, sizeof(AT11));
+    uart_write_bytes(UART1, (const char *) AT8, sizeof(AT8));
     vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT11, sizeof(AT11));
+    vTaskDelay(200);
     uart_write_bytes(UART1, (const char *) AT12, sizeof(AT12));
 }
 
@@ -189,5 +199,5 @@ void app_main(void)
     xTaskCreate(echo_task2, "uart1_task", ECHO_TASK_STACK_SIZE, NULL, 11, NULL);
 
     /* Start timer */ 
-    xTimerStart(xTimers[TIMER_SIM800_ID], 0);
+    // xTimerStart(xTimers[TIMER_SIM800_ID], 0);
 }

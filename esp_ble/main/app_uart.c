@@ -39,7 +39,7 @@ uint8_t AT11[] = "AT+HTTPACTION=1\r\n";
 uint8_t AT12[] = "AT+HTTPREAD\r\n";
 uint8_t AT13[] = "AT+HTTPTERM\r\n";
 
-uint8_t AT_GET1[] = "AT+HTTPPARA=\"URL\",\"http://bc-api.gl-sci.com/api/Common/GetConfigData/hub00001/123456\"\r\n";
+uint8_t AT_GET1[] = "AT+HTTPPARA=\"URL\",\"http://bc-api.gl-sci.com/api/Common/GetDeviceList/hub00001/123456\"\r\n";
 uint8_t AT_GET2[] = "AT+HTTPACTION=0\r\n";
 uint8_t AT_GET3[] = "AT+HTTPSSL=1\r\n";
 uint8_t AT_GET4[] = "AT+HTTPSSL?\r\n";
@@ -233,7 +233,9 @@ void app_uart_get(void)
     vTaskDelay(DELAY_TIME);
     uart_write_bytes(UART1, (const char *) AT_GET1, sizeof(AT_GET1));
     vTaskDelay(DELAY_TIME);
-    uart_write_bytes(UART1, (const char *) AT_GET2, sizeof(AT_GET2));
+    uart_write_bytes(UART1, (const char *) AT8, sizeof(AT8));
     vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT_GET2, sizeof(AT_GET2));
+    vTaskDelay(200);
     uart_write_bytes(UART1, (const char *) AT12, sizeof(AT12));
 }
