@@ -370,8 +370,6 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
         printf("temperature: %d, battery = %d *C\n", g_temperature, g_battery);
         /* POST to server */ 
         app_uart_post(g_temperature, g_battery);
-        /* Get from server */
-        app_uart_get();
 
     }    break;
     case ESP_GATTC_WRITE_DESCR_EVT:

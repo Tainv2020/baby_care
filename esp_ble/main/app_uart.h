@@ -9,7 +9,7 @@
 #define TXD_UART1_PIN           27
 #define RXD_UART1_PIN           26
 
-typedef void (*app_uart_data_cb_t) (uint8_t*,uint16_t);
+typedef void (*app_uart_data_cb_t) (uint8_t,uint8_t*,uint16_t);
 
 void app_uart_init(void);
 void app_uart_set_data_callback(app_uart_data_cb_t cb);
