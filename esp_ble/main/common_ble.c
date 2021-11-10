@@ -367,7 +367,8 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
                                   gl_profile_tab[PROFILE_B_APP_ID].char_handle,
                                   ESP_GATT_AUTH_REQ_NONE);
         
-        /* POST to sever */ 
+        printf("temperature: %d, battery = %d *C\n", g_temperature, g_battery);
+        /* POST to server */ 
         app_uart_post(g_temperature, g_battery);
 
     }    break;

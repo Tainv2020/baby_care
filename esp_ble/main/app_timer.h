@@ -10,4 +10,6 @@ void time_wait_to_connect_device_next_start(void);
 void timer_change_period_and_start(int index, int ms);
 /* Timeout to start init sim800 */
 void timeout_for_start_init_sim800(void);
+/* Timeout to start GET datafrom HTTP */
+void timeout_for_get_data_from_http_start(void);
 #endif
