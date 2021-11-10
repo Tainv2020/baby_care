@@ -248,6 +248,6 @@ void app_uart_get(void)
         vTaskDelay(200);
         uart_write_bytes(UART1, (const char *) AT12, sizeof(AT12));
         g_start_parse_data = true;
-        vTaskDelay(200);
+        vTaskDelay(500);
     }
 }

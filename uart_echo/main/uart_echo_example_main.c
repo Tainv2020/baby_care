@@ -130,6 +130,7 @@ void sim800_get(void)
     uart_write_bytes(UART1, (const char *) AT11, sizeof(AT11));
     vTaskDelay(200);
     uart_write_bytes(UART1, (const char *) AT12, sizeof(AT12));
+    vTaskDelay(200);
 }
 
 /* Soft timer callback */
