@@ -22,7 +22,7 @@ static volatile bool g_start_parse_data = false;
 #define ECHO_TEST_RTS (UART_PIN_NO_CHANGE)
 #define ECHO_TEST_CTS (UART_PIN_NO_CHANGE)
 #define ECHO_TASK_STACK_SIZE    (CONFIG_EXAMPLE_TASK_STACK_SIZE)
-#define DELAY_TIME 100
+#define DELAY_TIME 250
 
 /* AT command */
 uint8_t AT[] = "AT\r\n";
@@ -150,6 +150,7 @@ static void uart1_event_task(void *pvParameters)
     }
 }
 
+/* Init uart1 for sim800 */
 void app_uart1_sim800_init(uint8_t uart_instance, uint32_t baudrate, uint8_t tx_pin, uint8_t rx_pin, uint8_t priority)
 {
     uart_config_t uart_config = {
@@ -169,23 +170,6 @@ void app_uart1_sim800_init(uint8_t uart_instance, uint32_t baudrate, uint8_t tx_
     {
         xTaskCreate(uart1_event_task, "uart1_task", 2048, NULL, priority, NULL);
     }
-}
-
-/* Init sim800 */ 
-void app_uart_sim800_init(void)
-{
-    uart_write_bytes(UART1, (const char *) AT, sizeof(AT));
-    vTaskDelay(DELAY_TIME);
-    uart_write_bytes(UART1, (const char *) AT_NO_RESPOND, sizeof(AT_NO_RESPOND));
-    vTaskDelay(DELAY_TIME);
-    uart_write_bytes(UART1, (const char *) AT1, sizeof(AT1));
-    vTaskDelay(DELAY_TIME);
-    uart_write_bytes(UART1, (const char *) AT2, sizeof(AT2));
-    vTaskDelay(DELAY_TIME);
-    uart_write_bytes(UART1, (const char *) AT3, sizeof(AT3));
-    vTaskDelay(DELAY_TIME);
-    uart_write_bytes(UART1, (const char *) AT4, sizeof(AT4));
-    vTaskDelay(DELAY_TIME);
 }
 
 /* POST data to sever */
@@ -218,8 +202,6 @@ void app_uart_post(uint8_t temp, uint8_t battery)
     uart_write_bytes(UART1, (const char *) AT11, sizeof(AT11));
     vTaskDelay(DELAY_TIME);
     uart_write_bytes(UART1, (const char *) AT12, sizeof(AT12));
-    vTaskDelay(DELAY_TIME);
-    uart_write_bytes(UART1, (const char *) AT13, sizeof(AT13));
 }
 
 void app_uart_get(void)
@@ -245,7 +227,7 @@ void app_uart_get(void)
         uart_write_bytes(UART1, (const char *) AT8, sizeof(AT8));
         vTaskDelay(DELAY_TIME);
         uart_write_bytes(UART1, (const char *) AT_GET2, sizeof(AT_GET2));
-        vTaskDelay(200);
+        vTaskDelay(DELAY_TIME);
         uart_write_bytes(UART1, (const char *) AT12, sizeof(AT12));
         g_start_parse_data = true;
         vTaskDelay(500);

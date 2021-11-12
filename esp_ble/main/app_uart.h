@@ -14,8 +14,7 @@ typedef void (*app_uart_data_cb_t) (uint8_t,uint8_t*,uint16_t);
 void app_uart_init(void);
 void app_uart_set_data_callback(app_uart_data_cb_t cb);
 void app_uart1_sim800_init(uint8_t uart_instance, uint32_t baudrate, uint8_t tx_pin, uint8_t rx_pin, uint8_t priority);
-/* Init sim800 */
-void app_uart_sim800_init(void);
+
 /* POST data to server */
 void app_uart_post(uint8_t temp, uint8_t battery);
 /* GET data from server */
