@@ -10,6 +10,7 @@
 static const char *TAG = "uart_events";
 static const char *TAG_UART_SIM800 = "SIM800";
 static volatile bool g_get_http_status = false;
+static volatile bool g_post_http_status = false;
 static volatile bool g_start_parse_data = false;
 
 #define EX_UART_NUM 0
@@ -137,14 +138,21 @@ static void uart1_event_task(void *pvParameters)
         int len = uart_read_bytes(UART1, uart_rx_buf, BUF_SIZE, 20 / portTICK_RATE_MS);
         if(len != 0)
         {
-            app_uart_data_cb(UART1, uart_rx_buf, len);
-
-            if(len > 500)
+            /* In GET progress */
+            if((len > 500) && g_start_parse_data)
             {
-                if(g_start_parse_data)
-                {
-                    g_get_http_status = true;
-                }
+                /* Call callback function */
+                app_uart_data_cb(UART1, uart_rx_buf, len);
+                /* Update variable g_get_http_status to end GET process */
+                g_get_http_status = true;
+                /* Clear varibale g_start_parse_data */
+                g_start_parse_data = false;
+            }
+            /* In POST progress */
+            else if(g_post_http_status)
+            {
+                /* Call callback function */
+                app_uart_data_cb(UART1, uart_rx_buf, len);
             }
         }
     }
@@ -199,8 +207,12 @@ void app_uart_post(uint8_t temp, uint8_t battery)
     vTaskDelay(DELAY_TIME);
     uart_write_bytes(UART1, (const char *) body, sizeof(body));
     vTaskDelay(DELAY_TIME);
+    /* Start read respond from POST progress */
+    g_post_http_status = true;
     uart_write_bytes(UART1, (const char *) AT11, sizeof(AT11));
     vTaskDelay(DELAY_TIME);
+    /* Stop POST progress */
+    g_post_http_status = false;
     uart_write_bytes(UART1, (const char *) AT12, sizeof(AT12));
 }
 

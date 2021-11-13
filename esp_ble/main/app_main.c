@@ -14,8 +14,11 @@
 #include "app_convert.h"
 
 static const char *TAG = "MAIN_APP";
+static const char *TAG_GET = "MAIN_APP_GET";
+static const char *TAG_POST = "MAIN_APP_POST";
 static uint8_t index_for_connected_to_peer = 0;
 extern ble_device_inst_t ble_device_table[GATTS_SUPPORT];
+static bool g_get_http_status = false;
 
 esp_bd_addr_t device1 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 esp_bd_addr_t device2 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -90,7 +93,7 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
                 if(ble_device_table[index_for_connected_to_peer].slot_is_used)
                 {
                     found = true;
-                    ESP_LOGW(TAG,"Found. Wait 5s..");
+                    ESP_LOGW(TAG,"Found. Wait 10s..");
                     app_ble_set_device_to_connect(ble_device_table[index_for_connected_to_peer].ble_addr);
                     time_wait_to_connect_device_next_start();       //wait 5s
                     break;
@@ -108,7 +111,7 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
                 {
                     if(ble_device_table[i].slot_is_used)
                     {
-                        ESP_LOGW(TAG,"Found. Wait 5s..");
+                        ESP_LOGW(TAG,"Found. Wait 10s..");
                         index_for_connected_to_peer = i;
                         app_ble_set_device_to_connect(ble_device_table[index_for_connected_to_peer].ble_addr);
                         time_wait_to_connect_device_next_start();
@@ -129,7 +132,7 @@ void vTimerCallback( TimerHandle_t pxTimer )
 
      // Which timer expired?
     lArrayIndex = ( int32_t ) pvTimerGetTimerID( pxTimer ); 
-    if(lArrayIndex == 0) /* Timer 0 */
+    if((lArrayIndex == 0) && g_get_http_status) /* Timer 0 */
     {
         ESP_LOGE(TAG,"Timeout. Can't connect to device");
         ESP_LOGW(TAG,"Try next..");
@@ -139,7 +142,7 @@ void vTimerCallback( TimerHandle_t pxTimer )
             if(ble_device_table[index_for_connected_to_peer].slot_is_used)
             {
                 found = true;
-                ESP_LOGW(TAG,"Found. Wait 5s..");
+                ESP_LOGW(TAG,"Found. Wait 10s..");
                 app_ble_set_device_to_connect(ble_device_table[index_for_connected_to_peer].ble_addr);
                 time_wait_to_connect_device_next_start();
                 break;
@@ -157,7 +160,7 @@ void vTimerCallback( TimerHandle_t pxTimer )
             {
                 if(ble_device_table[i].slot_is_used)
                 {
-                    ESP_LOGW(TAG,"Found. Wait 5s..");
+                    ESP_LOGW(TAG,"Found. Wait 10s..");
                     index_for_connected_to_peer = i;
                     app_ble_set_device_to_connect(ble_device_table[index_for_connected_to_peer].ble_addr);
                     time_wait_to_connect_device_next_start();
@@ -166,7 +169,7 @@ void vTimerCallback( TimerHandle_t pxTimer )
             }
         }  
     }
-    else if(lArrayIndex == 1) /* Timer 1 */
+    else if((lArrayIndex == 1) && g_get_http_status) /* Timer 1 */
     {
         ESP_LOGE(TAG,"Start scan ble");
         app_ble_start_scan(10);
@@ -176,6 +179,8 @@ void vTimerCallback( TimerHandle_t pxTimer )
         /* Get from server */
         ESP_LOGE(TAG,"Start get data from HTTP");
         app_uart_get();
+        /* Get HTTP success */
+        g_get_http_status = true;
 
         int index;
         /* Add device ble */
@@ -201,10 +206,6 @@ void vTimerCallback( TimerHandle_t pxTimer )
             app_ble_set_device_to_connect(ble_device_table[index_for_connected_to_peer].ble_addr);
         }
 
-        /* Start scan ble */
-         ESP_LOGE(TAG,"Start scan ble");
-         app_ble_start_scan(10);
-
         /* Start timer1 to connect devices */
         time_wait_to_connect_device_next_start();
     }
@@ -213,24 +214,25 @@ void vTimerCallback( TimerHandle_t pxTimer )
 /* UART0 & UART1 callback function */
 void app_uart_rx_data_callback(uint8_t uart_instance, uint8_t *dta, uint16_t length)
 {
-    //ESP_LOG_BUFFER_HEX(TAG, dta, length);
-    
     if(uart_instance == UART0)
     {
 
     }
     else /* UART1 */
     {
+        /* From GET process */
         if(length > 500)
         {
             // Write data back to the UART
-            ESP_LOGI(TAG, "%s", dta);
+            ESP_LOGI(TAG_GET, "%s", dta);
 
+            /* Parse data to get MAC ID */
             app_parse_data_from_uart(dta, length);
         }
+        /* From POST process */
         else
         {
-            ESP_LOGI(TAG, "%s", dta);
+            ESP_LOGI(TAG_POST, "%s", dta);
         }
     }
 }
@@ -260,7 +262,7 @@ static void app_parse_data_from_uart(uint8_t data[], uint32_t length)
                         device1[4] = app_convert_char2Dec(data[count + 14], data[count + 15]);
                         device1[5] = app_convert_char2Dec(data[count + 17], data[count + 18]);
 
-                        ESP_LOGI(TAG, "%d %d %d %d %d %d", device1[0], device1[1], device1[2], device1[3], device1[4], device1[5]);
+                        // ESP_LOGI(TAG, "%d %d %d %d %d %d", device1[0], device1[1], device1[2], device1[3], device1[4], device1[5]);
                         break;
                     }
                     case 4: /* Second ID MAC */
@@ -272,7 +274,7 @@ static void app_parse_data_from_uart(uint8_t data[], uint32_t length)
                         device2[4] = app_convert_char2Dec(data[count + 14], data[count + 15]);
                         device2[5] = app_convert_char2Dec(data[count + 17], data[count + 18]);
 
-                        ESP_LOGI(TAG, "%d %d %d %d %d %d", device2[0], device2[1], device2[2], device2[3], device2[4], device2[5]);
+                        // ESP_LOGI(TAG, "%d %d %d %d %d %d", device2[0], device2[1], device2[2], device2[3], device2[4], device2[5]);
                         break;
                     }
                     case 6: /* Third ID MAC */
@@ -284,7 +286,7 @@ static void app_parse_data_from_uart(uint8_t data[], uint32_t length)
                         device3[4] = app_convert_char2Dec(data[count + 14], data[count + 15]);
                         device3[5] = app_convert_char2Dec(data[count + 17], data[count + 18]);
 
-                        ESP_LOGI(TAG, "%d %d %d %d %d %d", device3[0], device3[1], device3[2], device3[3], device3[4], device3[5]);
+                        // ESP_LOGI(TAG, "%d %d %d %d %d %d", device3[0], device3[1], device3[2], device3[3], device3[4], device3[5]);
                         break;
                     }
                     case 8: /* Four ID MAC */
@@ -296,7 +298,7 @@ static void app_parse_data_from_uart(uint8_t data[], uint32_t length)
                         device4[4] = app_convert_char2Dec(data[count + 14], data[count + 15]);
                         device4[5] = app_convert_char2Dec(data[count + 17], data[count + 18]);
 
-                        ESP_LOGI(TAG, "%d %d %d %d %d %d", device4[0], device4[1], device4[2], device4[3], device4[4], device4[5]);
+                        // ESP_LOGI(TAG, "%d %d %d %d %d %d", device4[0], device4[1], device4[2], device4[3], device4[4], device4[5]);
                         break;
                     }
                     
