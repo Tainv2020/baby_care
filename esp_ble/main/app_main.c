@@ -24,6 +24,10 @@ esp_bd_addr_t device1 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 esp_bd_addr_t device2 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 esp_bd_addr_t device3 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 esp_bd_addr_t device4 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+esp_bd_addr_t device5 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+esp_bd_addr_t device6 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+esp_bd_addr_t device7 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+esp_bd_addr_t device8 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 /* Declare function */
 /* Event handler */
@@ -86,6 +90,9 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
         else if(event_id == EVENT_BLE_GOT_DATA_DONE)
         {
             ESP_LOGW(TAG,"EVENT_BLE_GOT_DATA_DONE");
+            /* POST data to server */
+            app_uart_post(ble_device_table[index_for_connected_to_peer].ble_addr, ble_device_table[index_for_connected_to_peer].ble_data);
+
             ESP_LOGW(TAG,"Try next..");
             bool found = false;
             while(++index_for_connected_to_peer < GATTS_SUPPORT)

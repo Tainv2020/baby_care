@@ -5,7 +5,10 @@
 #include "freertos/queue.h"
 #include "driver/uart.h"
 #include "esp_log.h"
+#include "esp_gatt_defs.h"
+#include "common_ble.h"
 #include "app_uart.h"
+#include "app_convert.h"
 
 static const char *TAG = "uart_events";
 static const char *TAG_UART_SIM800 = "SIM800";
@@ -14,7 +17,6 @@ static volatile bool g_post_http_status = false;
 static volatile bool g_start_parse_data = false;
 
 #define EX_UART_NUM 0
-
 #define BUF_SIZE (1024)
 #define RX_BUF_SIZE (BUF_SIZE)
 
@@ -24,6 +26,7 @@ static volatile bool g_start_parse_data = false;
 #define ECHO_TEST_CTS (UART_PIN_NO_CHANGE)
 #define ECHO_TASK_STACK_SIZE    (CONFIG_EXAMPLE_TASK_STACK_SIZE)
 #define DELAY_TIME 250
+#define TEMPARETURE_WARNING 3750 /* 37.5 degree */
 
 /* AT command */
 uint8_t AT[] = "AT\r\n";
@@ -181,10 +184,39 @@ void app_uart1_sim800_init(uint8_t uart_instance, uint32_t baudrate, uint8_t tx_
 }
 
 /* POST data to sever */
-void app_uart_post(uint8_t temp, uint8_t battery)
+void app_uart_post(esp_bd_addr_t id, ble_app_data_t ble_data)
 {
     char body[500];
-    sprintf(body, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"C9:AD:7F:93:4C:DE\",\"dataTypeID\": 1,\"dataValue\": %d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"}\r\n", temp, battery);
+    uint8_t counter = 0;
+    uint8_t counter1 = 0;
+    uint8_t arr_id[] = "  :  :  :  :  :  ";
+    app_convert_dec2Char_t value_id;
+
+    for(counter = 0; counter < 6; counter ++)
+    {
+        value_id = app_convert_dec2Char(id[counter]);
+        if(value_id.num1 >= 10)
+        {
+            arr_id[counter1] = value_id.num1 + 55; /* convert to char */
+        }
+        else
+        {
+            arr_id[counter1] = value_id.num1 + 48; /* convert to char */
+        }
+        if(value_id.num2 >= 10)
+        {
+            arr_id[counter1 + 1] = value_id.num2 + 55; /* convert to char */
+        }
+        else
+        {
+            arr_id[counter1 + 1] = value_id.num2 + 48; /* convert to char */
+        }
+        
+        counter1 += 3;
+    }
+    sprintf(body, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%s\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"}\r\n", arr_id, ble_data.temperature/100, ble_data.temperature%100, ble_data.battery_level);
+    
+    ESP_LOGW(TAG, "%s", body);
 
     uart_write_bytes(UART1, (const char *) AT1, sizeof(AT1));
     vTaskDelay(DELAY_TIME);

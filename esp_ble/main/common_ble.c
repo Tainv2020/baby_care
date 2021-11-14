@@ -20,10 +20,6 @@
 #define PROFILE_B_APP_ID 1
 #define INVALID_HANDLE   0
 
-static uint8_t g_temperature = 0;
-static uint8_t g_battery = 0;
-
-
 static const char remote_device_name[] = "ATBF-1000";
 static bool connect    = false;
 static bool get_server = false;
@@ -336,7 +332,6 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
         ESP_LOGI(GATTC_TAG, "ESP_GATTC_READ_CHAR_EVT, receive read value:");
         // esp_log_buffer_hex(GATTC_TAG, p_data->read.value, p_data->read.value_len);
         printf("battery: %d%%\n", *p_data->read.value);
-        g_battery = *p_data->read.value;
         int get_index = app_ble_get_index_in_table(p_data->notify.remote_bda);
         if(get_index != -1)
         {
@@ -359,17 +354,12 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
         {
             uint32_t temp = convert_ble_data_to_temperature(p_data->notify.value,p_data->notify.value_len);
             printf("temperature: %2d.%2d *C\n", temp/100, temp%100);
-            g_temperature = temp/100;
             ble_device_table[get_index].ble_data.temperature = temp;
         }
         esp_ble_gattc_read_char( gattc_if,
                                   gl_profile_tab[PROFILE_B_APP_ID].conn_id,
                                   gl_profile_tab[PROFILE_B_APP_ID].char_handle,
                                   ESP_GATT_AUTH_REQ_NONE);
-        
-        /* POST to server */ 
-        app_uart_post(g_temperature, g_battery);
-
     }    break;
     case ESP_GATTC_WRITE_DESCR_EVT:
         if (p_data->write.status != ESP_GATT_OK){

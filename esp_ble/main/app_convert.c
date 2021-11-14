@@ -37,3 +37,14 @@ uint32_t app_convert_char2Dec(uint8_t ch1, uint8_t ch2)
 
     return retVal; 
 }
+
+/* Convert dec to char */
+app_convert_dec2Char_t app_convert_dec2Char(uint32_t value)
+{
+    app_convert_dec2Char_t retVal;
+
+    retVal.num1 = value/16;
+    retVal.num2 = value%16;
+
+    return retVal;
+}
