@@ -25,12 +25,13 @@ static volatile bool g_start_parse_data = false;
 #define ECHO_TEST_RTS (UART_PIN_NO_CHANGE)
 #define ECHO_TEST_CTS (UART_PIN_NO_CHANGE)
 #define ECHO_TASK_STACK_SIZE    (CONFIG_EXAMPLE_TASK_STACK_SIZE)
-#define DELAY_TIME 250
-#define TEMPARETURE_WARNING 3750 /* 37.5 degree */
+#define DELAY_TIME_GET  250
+#define DELAY_TIME_POST 100
 
 /* AT command */
 uint8_t AT[] = "AT\r\n";
 uint8_t AT_NO_RESPOND[] = "ATE0\r\n";
+uint8_t AT_RESPOND[] = "ATE1\r\n";
 uint8_t AT1[] = "AT+SAPBR=3,1,\"Contype\",\"GPRS\"\r\n";
 uint8_t AT2[] = "AT+SAPBR=3,1,\"APN\",\"airtelgprs.com\"\r\n";
 uint8_t AT3[] = "AT+SAPBR=1,1\r\n";
@@ -152,7 +153,7 @@ static void uart1_event_task(void *pvParameters)
                 g_start_parse_data = false;
             }
             /* In POST progress */
-            else if(g_post_http_status)
+            if(g_post_http_status)
             {
                 /* Call callback function */
                 app_uart_data_cb(UART1, uart_rx_buf, len);
@@ -219,33 +220,28 @@ void app_uart_post(esp_bd_addr_t id, ble_app_data_t ble_data)
     ESP_LOGW(TAG, "%s", body);
 
     uart_write_bytes(UART1, (const char *) AT1, sizeof(AT1));
-    vTaskDelay(DELAY_TIME);
+    vTaskDelay(DELAY_TIME_POST);
     uart_write_bytes(UART1, (const char *) AT2, sizeof(AT2));
-    vTaskDelay(DELAY_TIME);
+    vTaskDelay(DELAY_TIME_POST);
     uart_write_bytes(UART1, (const char *) AT3, sizeof(AT3));
-    vTaskDelay(DELAY_TIME);
+    vTaskDelay(DELAY_TIME_POST);
     uart_write_bytes(UART1, (const char *) AT4, sizeof(AT4));
-    vTaskDelay(DELAY_TIME);
+    vTaskDelay(DELAY_TIME_POST);
     uart_write_bytes(UART1, (const char *) AT5, sizeof(AT5));
-    vTaskDelay(DELAY_TIME);
-    uart_write_bytes(UART1, (const char *) AT6, sizeof(AT6));
-    vTaskDelay(DELAY_TIME);
+    vTaskDelay(DELAY_TIME_POST);
     uart_write_bytes(UART1, (const char *) AT7, sizeof(AT7));
-    vTaskDelay(DELAY_TIME);
-    uart_write_bytes(UART1, (const char *) AT8, sizeof(AT8));
-    vTaskDelay(DELAY_TIME);
+    vTaskDelay(DELAY_TIME_POST);
     sprintf(AT10, "AT+HTTPDATA=%d,\"10000\"\r\n", strlen(body));
     uart_write_bytes(UART1, (const char *) AT10, sizeof(AT10));
-    vTaskDelay(DELAY_TIME);
+    vTaskDelay(DELAY_TIME_POST);
     uart_write_bytes(UART1, (const char *) body, sizeof(body));
-    vTaskDelay(DELAY_TIME);
+    vTaskDelay(DELAY_TIME_POST);
+    uart_write_bytes(UART1, (const char *) AT11, sizeof(AT11));
     /* Start read respond from POST progress */
     g_post_http_status = true;
-    uart_write_bytes(UART1, (const char *) AT11, sizeof(AT11));
-    vTaskDelay(DELAY_TIME);
-    /* Stop POST progress */
+    vTaskDelay(500);
+    /* Clear variable g_post_http_status */
     g_post_http_status = false;
-    uart_write_bytes(UART1, (const char *) AT12, sizeof(AT12));
 }
 
 void app_uart_get(void)
@@ -253,25 +249,25 @@ void app_uart_get(void)
     while(!g_get_http_status)
     {
         uart_write_bytes(UART1, (const char *) AT_NO_RESPOND, sizeof(AT_NO_RESPOND));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT1, sizeof(AT1));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT2, sizeof(AT2));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT3, sizeof(AT3));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT4, sizeof(AT4));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT5, sizeof(AT5));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT6, sizeof(AT6));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT_GET1, sizeof(AT_GET1));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT8, sizeof(AT8));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT_GET2, sizeof(AT_GET2));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT12, sizeof(AT12));
         g_start_parse_data = true;
         vTaskDelay(500);

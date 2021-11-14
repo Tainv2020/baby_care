@@ -6,6 +6,7 @@
 #include "nvs_flash.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
+#include "freertos/task.h"
 #include "common_ble.h"
 #include "app_ble.h"
 #include "app_uart.h"
@@ -17,8 +18,11 @@ static const char *TAG = "MAIN_APP";
 static const char *TAG_GET = "MAIN_APP_GET";
 static const char *TAG_POST = "MAIN_APP_POST";
 static uint8_t index_for_connected_to_peer = 0;
+static uint8_t index_pre_for_connected_to_peer = 0;
 extern ble_device_inst_t ble_device_table[GATTS_SUPPORT];
 static bool g_get_http_status = false;
+static bool g_post_http_status = false;
+static bool g_post_http_start = false;
 
 esp_bd_addr_t device1 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 esp_bd_addr_t device2 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -34,6 +38,8 @@ esp_bd_addr_t device8 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
 /* Function Parse data */
 static void app_parse_data_from_uart(uint8_t data[], uint32_t length);
+/* Function parse data to confirm POST is ok */
+static bool app_confirm_post_is_ok(uint8_t data[], uint8_t length);
 /* UART0 & UART1 callback function */
 void app_uart_rx_data_callback(uint8_t uart_instance, uint8_t *dta, uint16_t length);
 /* Timer callback */
@@ -61,12 +67,27 @@ void app_main(void)
     app_uart_set_data_callback(app_uart_rx_data_callback);
 
     /* Init uart for module sim800 */
-    app_uart1_sim800_init(UART1, 115200, TXD_UART1_PIN, RXD_UART1_PIN, 13);
+    app_uart1_sim800_init(UART1, 115200, TXD_UART1_PIN, RXD_UART1_PIN, 5);
     /* Start timer2 to get data from HTTP */
     timeout_for_get_data_from_http_start();
+
+    while(1)
+    {
+        if(g_post_http_start)
+        {
+            g_post_http_start = false;
+            /* Start POST */
+            ESP_LOGE(TAG,"Start POST data to server");
+            /* POST data to server */
+            app_uart_post(ble_device_table[index_pre_for_connected_to_peer].ble_addr, ble_device_table[index_pre_for_connected_to_peer].ble_data);
+            /* Start timer to scan next device */
+            time_wait_to_connect_device_next_start();
+        }
+        vTaskDelay(1);
+    }
 }
 
-
+/* Event handler */
 static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data)
 {
     if(event_base == EVENT_BLE)
@@ -85,15 +106,18 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
         }
         else if(event_id == EVENT_BLE_DISCONNECTED)
         {
+            g_post_http_start = true;
             ESP_LOGW(TAG,"EVENT_BLE_DISCONNECTED");
         }
         else if(event_id == EVENT_BLE_GOT_DATA_DONE)
         {
             ESP_LOGW(TAG,"EVENT_BLE_GOT_DATA_DONE");
-            /* POST data to server */
-            app_uart_post(ble_device_table[index_for_connected_to_peer].ble_addr, ble_device_table[index_for_connected_to_peer].ble_data);
-
             ESP_LOGW(TAG,"Try next..");
+            /* Stop timer 0 */
+            timeout_for_read_data_stop();
+            /* Stop timer 1 */
+            time_stop_to_connect_device_next_start();
+            index_pre_for_connected_to_peer = index_for_connected_to_peer;
             bool found = false;
             while(++index_for_connected_to_peer < GATTS_SUPPORT)
             {
@@ -102,7 +126,7 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
                     found = true;
                     ESP_LOGW(TAG,"Found. Wait 10s..");
                     app_ble_set_device_to_connect(ble_device_table[index_for_connected_to_peer].ble_addr);
-                    time_wait_to_connect_device_next_start();       //wait 5s
+                    //time_wait_to_connect_device_next_start();       //wait 10s
                     break;
                 }
             }
@@ -184,7 +208,7 @@ void vTimerCallback( TimerHandle_t pxTimer )
     else if(lArrayIndex == 2) /* Timer 2 */
     {
         /* Get from server */
-        ESP_LOGE(TAG,"Start get data from HTTP");
+        ESP_LOGE(TAG,"Start GET data from HTTP");
         app_uart_get();
         /* Get HTTP success */
         g_get_http_status = true;
@@ -221,11 +245,7 @@ void vTimerCallback( TimerHandle_t pxTimer )
 /* UART0 & UART1 callback function */
 void app_uart_rx_data_callback(uint8_t uart_instance, uint8_t *dta, uint16_t length)
 {
-    if(uart_instance == UART0)
-    {
-
-    }
-    else /* UART1 */
+    if(uart_instance == UART1) /* UART1 */
     {
         /* From GET process */
         if(length > 500)
@@ -240,11 +260,13 @@ void app_uart_rx_data_callback(uint8_t uart_instance, uint8_t *dta, uint16_t len
         else
         {
             ESP_LOGI(TAG_POST, "%s", dta);
+            if((length > 15) && (length <= 30))
+                g_post_http_status = app_confirm_post_is_ok(dta, length);
         }
     }
 }
 
-/* Parse data */
+/* Parse data GET */
 static void app_parse_data_from_uart(uint8_t data[], uint32_t length)
 {
     uint32_t count = 0;
@@ -315,4 +337,25 @@ static void app_parse_data_from_uart(uint8_t data[], uint32_t length)
             }
         }
     }
+}
+
+static bool app_confirm_post_is_ok(uint8_t data[], uint8_t length)
+{
+    bool retVal = true;
+    uint8_t counter = 0;
+    char data_compare[] = "+HTTPACTION:  ,200,   ";
+
+    for(counter = 0; counter < length; counter ++)
+    {
+        if((counter != 15) && (counter != 21) && (counter != 22) && (counter != 23))
+        {
+            if(data[counter] != data_compare[counter])
+            {
+                retVal = false;
+            }
+        }
+        ESP_LOGI(TAG_POST, "%c %c", data[counter], data_compare[counter]);
+    }
+
+    return retVal;
 }

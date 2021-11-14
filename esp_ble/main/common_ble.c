@@ -360,6 +360,7 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
                                   gl_profile_tab[PROFILE_B_APP_ID].conn_id,
                                   gl_profile_tab[PROFILE_B_APP_ID].char_handle,
                                   ESP_GATT_AUTH_REQ_NONE);
+
     }    break;
     case ESP_GATTC_WRITE_DESCR_EVT:
         if (p_data->write.status != ESP_GATT_OK){
@@ -433,13 +434,13 @@ static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
                 esp_log_buffer_hex(GATTC_TAG, &scan_result->scan_rst.ble_adv[scan_result->scan_rst.adv_data_len], scan_result->scan_rst.scan_rsp_len);
             }
 #endif
-            ESP_LOGI(GATTC_TAG, "\n");
+            //ESP_LOGI(GATTC_TAG, "\n");
 
             if ((adv_name != NULL) && (adv_name_len)) {
                 if (strlen(remote_device_name) == adv_name_len && strncmp((char *)adv_name, remote_device_name, adv_name_len) == 0) {
                     if((memcmp(scan_result->scan_rst.bda, device_to_connect, 6) == 0))
                     {
-                        ESP_LOGI(GATTC_TAG, "searched device %s", remote_device_name);
+                        //ESP_LOGI(GATTC_TAG, "searched device %s", remote_device_name);
                         esp_log_buffer_hex(GATTC_TAG, scan_result->scan_rst.bda, 6);
                         if (connect == false) {
                             connect = true;

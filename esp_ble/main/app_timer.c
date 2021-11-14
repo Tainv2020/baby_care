@@ -8,7 +8,7 @@ TimerHandle_t xTimers[NUM_TIMERS];
 void app_timer_init(void *callback)
 {
     xTimers[0] = xTimerCreate("TimeoutForReadData",                      // Just a text name, not used by the kernel.
-                            pdMS_TO_TICKS(20000),    // 1000ms.
+                            pdMS_TO_TICKS(10000),    // 1000ms.
                             pdFALSE,                        // The timers will auto-reload themselves when they expire.
                             (void *) 0,                     // Assign each timer a unique id equal to its array index.
                             callback);                // Each timer calls the same callback when it expires.
@@ -61,6 +61,14 @@ void timeout_for_read_data_stop(void)
 void time_wait_to_connect_device_next_start(void)
 {
     if(xTimerStart( xTimers[1], 0) != pdPASS )
+    {
+        // The timer could not be set into the Active state.
+    }
+}
+
+void time_stop_to_connect_device_next_start(void)
+{
+    if(xTimerStop( xTimers[1], 0) != pdPASS )
     {
         // The timer could not be set into the Active state.
     }
