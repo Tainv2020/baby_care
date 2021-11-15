@@ -343,18 +343,20 @@ static bool app_confirm_post_is_ok(uint8_t data[], uint8_t length)
 {
     bool retVal = true;
     uint8_t counter = 0;
-    char data_compare[] = "+HTTPACTION:  ,200,   ";
+    char data_compare[] = "  +HTTPACTION:  ,200,   \r\n";
 
-    for(counter = 0; counter < length; counter ++)
+    // for(counter = 0; counter < length; counter ++)
+    // {
+    //     ESP_LOGI(TAG_POST, "%c %c", data[counter], data_compare[counter]); 
+    // }
+    if((data[18] == data_compare[18]) && (data[19] == data_compare[19]) && (data[20] == data_compare[20]))
     {
-        if((counter != 15) && (counter != 21) && (counter != 22) && (counter != 23))
-        {
-            if(data[counter] != data_compare[counter])
-            {
-                retVal = false;
-            }
-        }
-        ESP_LOGI(TAG_POST, "%c %c", data[counter], data_compare[counter]);
+        ESP_LOGI(TAG_POST, "%c%c%c", data[18], data[19], data[20]);
+        ESP_LOGW(TAG_POST, "POST to HTTP success");
+    }
+    else
+    {
+        ESP_LOGE(TAG_POST, "POST to HTTP faile");
     }
 
     return retVal;
