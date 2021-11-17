@@ -40,7 +40,7 @@
 #define ECHO_TASK_STACK_SIZE    (CONFIG_EXAMPLE_TASK_STACK_SIZE)
 
 #define BUF_SIZE (1024)
-#define DELAY_TIME 50
+#define DELAY_TIME 200
 
 /* Timer */
 #define MAX_TIMER 3
@@ -56,7 +56,7 @@ uint8_t AT3[] = "AT+SAPBR=1,1\r\n";
 uint8_t AT4[] = "AT+SAPBR=2,1\r\n";
 uint8_t AT5[] = "AT+HTTPINIT\r\n";
 uint8_t AT6[] = "AT+HTTPPARA=\"CID\",1\r\n";
-uint8_t AT7[] = "AT+HTTPPARA=\"URL\",\"http://bc-api.gl-sci.com/api/Common/SubmitHistoryData\"\r\n";
+uint8_t AT7[] = "AT+HTTPPARA=\"URL\",\"http://bc-api.gl-sci.com/api/Common/SubmitHistoryDatas\"\r\n";
 uint8_t AT8[] = "AT+HTTPPARA=\"CONTENT\",\"application/json\"\r\n";
 uint8_t AT9[] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"C9:AD:7F:93:4C:DE\",\"dataTypeID\": 1,\"dataValue\": 33,\"batteryValue\": 22,\"isWarning\": false,\"securityKey\": \"123456\"}\r\n";
 char AT10[500];
@@ -104,9 +104,17 @@ static void echo_task2(void *arg)
 
 void sim800_init(void)
 {
-    char body[500];
+    char body[2000];
+    char body1[200] = "[{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"238:106:242:03:255:123\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
+    char body2[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"C9:AD:7F:93:4C:DE\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
+    char body3[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"D6:FE:FA:F6:68:26\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
+    char body4[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"FB:0B:2B:97:EA:0E\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"}]\r\n";
+    // char body5[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"ef:6a:f2:03:ad:7b\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
+    // char body6[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"ef:6a:f2:03:ad:7b\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
+    // char body7[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"ef:6a:f2:03:ad:7b\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
+    // char body8[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"ef:6a:f2:03:ad:7b\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"}]\r\n";
 
-    sprintf(body, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"6f:6a:f2:03:ad:7b\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"}\r\n");
+    sprintf(body, "%s%s%s%s", body1, body2, body3, body4);
     
     uart_write_bytes(UART1, (const char *) AT, sizeof(AT));
     vTaskDelay(DELAY_TIME);
@@ -127,7 +135,7 @@ void sim800_init(void)
     sprintf(AT10, "AT+HTTPDATA=%d,\"10000\"\r\n", strlen(body));
     uart_write_bytes(UART1, (const char *) AT10, sizeof(AT10));
     vTaskDelay(DELAY_TIME);
-    uart_write_bytes(UART1, (const char *) AT9, sizeof(AT9));
+    uart_write_bytes(UART1, (const char *) body, sizeof(body));
     vTaskDelay(DELAY_TIME);
     uart_write_bytes(UART1, (const char *) AT11, sizeof(AT11));
 }
@@ -231,7 +239,7 @@ void app_main(void)
     xTimers[TIMER_SIM800_ID] = xTimerCreate("timer task for init sim800", pdMS_TO_TICKS(8000), pdFALSE, (void *)0, vTimerCallback);
 
     /* Create task */ 
-    xTaskCreate(echo_task1, "uart0_task", ECHO_TASK_STACK_SIZE, NULL, 10, NULL);
+    xTaskCreate(echo_task1, "uart0_task", 8000, NULL, 10, NULL);
     xTaskCreate(echo_task2, "uart1_task", ECHO_TASK_STACK_SIZE, NULL, 11, NULL);
 
     /* Start timer */ 

@@ -7,7 +7,6 @@
 #include "freertos/FreeRTOS.h"
 #include "common_ble.h"
 #include "app_timer.h"
-#include "app_uart.h"
 
 #define GATTC_TAG "GATTC_DEMO"
 #define REMOTE_SERVICE_UUID        0x1809

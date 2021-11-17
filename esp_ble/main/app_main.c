@@ -14,7 +14,6 @@
 #include "app_timer.h"
 #include "app_convert.h"
 
-#define MAX_DEVICE_NUM 8
 uint32_t g_arr_temparature[MAX_DEVICE_NUM];
 uint8_t g_arr_battery[MAX_DEVICE_NUM];
 
@@ -90,7 +89,7 @@ void app_main(void)
             /* Start POST */
             ESP_LOGE(TAG,"Start POST data to server");
             /* POST data to server */
-            //app_uart_post(ble_device_table[index_pre_for_connected_to_peer].ble_addr, ble_device_table[index_pre_for_connected_to_peer].ble_data);
+            app_uart_post(device1, device2, device3, device4, g_arr_temparature, g_arr_battery);
         }
         vTaskDelay(1);
     }
@@ -148,7 +147,7 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
                     {
                         index_for_connected_to_peer = 0;
                     }
-                } while (!g_status_read_all_device[index_for_connected_to_peer]);
+                } while (g_status_read_all_device[index_for_connected_to_peer]);
                 
                 if(ble_device_table[index_for_connected_to_peer].slot_is_used)
                 {
@@ -203,7 +202,7 @@ void vTimerCallback( TimerHandle_t pxTimer )
             {
                 index_for_connected_to_peer = 0;
             }
-        } while (!g_status_read_all_device[index_for_connected_to_peer]);
+        } while (g_status_read_all_device[index_for_connected_to_peer]);
         
         if(ble_device_table[index_for_connected_to_peer].slot_is_used)
         {
@@ -330,7 +329,8 @@ static void app_parse_data_from_uart(uint8_t data[], uint32_t length)
                 {
                     case 2: /* First ID MAC */
                     {
-                        device1[0] = app_convert_char2Dec(data[count + 2], data[count + 3]);
+                        device1[0] = 0xEF;
+                        //device1[0] = app_convert_char2Dec(data[count + 2], data[count + 3]);
                         device1[1] = app_convert_char2Dec(data[count + 5], data[count + 6]);
                         device1[2] = app_convert_char2Dec(data[count + 8], data[count + 9]);
                         device1[3] = app_convert_char2Dec(data[count + 11], data[count + 12]);
@@ -391,10 +391,10 @@ static bool app_confirm_post_is_ok(uint8_t data[], uint8_t length)
     uint8_t counter = 0;
     char data_compare[] = "  +HTTPACTION:  ,200,   \r\n";
 
-    // for(counter = 0; counter < length; counter ++)
-    // {
-    //     ESP_LOGI(TAG_POST, "%c %c", data[counter], data_compare[counter]); 
-    // }
+    for(counter = 0; counter < length; counter ++)
+    {
+        ESP_LOGI(TAG_POST, "%c %c", data[counter], data_compare[counter]); 
+    }
     if((data[18] == data_compare[18]) && (data[19] == data_compare[19]) && (data[20] == data_compare[20]))
     {
         ESP_LOGI(TAG_POST, "%c%c%c", data[18], data[19], data[20]);
