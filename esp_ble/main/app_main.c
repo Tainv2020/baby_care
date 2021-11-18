@@ -393,15 +393,16 @@ static bool app_confirm_post_is_ok(uint8_t data[], uint8_t length)
 
     for(counter = 0; counter < length; counter ++)
     {
-        ESP_LOGI(TAG_POST, "%c %c", data[counter], data_compare[counter]); 
+        ESP_LOGI(TAG_POST, "%d, %c %c", counter, data[counter], data_compare[counter]); 
     }
-    if((data[18] == data_compare[18]) && (data[19] == data_compare[19]) && (data[20] == data_compare[20]))
+    if((data[17] == data_compare[17]) && (data[18] == data_compare[18]) && (data[19] == data_compare[19])) /* Check 200 */
     {
         ESP_LOGI(TAG_POST, "%c%c%c", data[18], data[19], data[20]);
         ESP_LOGW(TAG_POST, "POST to HTTP success");
     }
     else
     {
+        retVal = false;
         ESP_LOGE(TAG_POST, "POST to HTTP faile");
     }
 

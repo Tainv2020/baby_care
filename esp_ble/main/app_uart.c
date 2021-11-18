@@ -196,22 +196,20 @@ void app_uart1_sim800_init(uint8_t uart_instance, uint32_t baudrate, uint8_t tx_
 }
 
 /* POST data to sever */
-void app_uart_post(esp_bd_addr_t id1, esp_bd_addr_t id2, esp_bd_addr_t id3, esp_bd_addr_t id4, uint8_t *temp, uint8_t *bat)
+void app_uart_post(esp_bd_addr_t id1, esp_bd_addr_t id2, esp_bd_addr_t id3, esp_bd_addr_t id4, uint32_t temp[], uint8_t bat[])
 {
-    sprintf(body1, "[{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", id1[0], id1[1], id1[2], id1[3], id1[4], id1[5], temp[0]/100, temp[0]%100, bat[0]);
-    sprintf(body2, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", id2[0], id2[1], id2[2], id2[3], id2[4], id2[5], temp[1]/100, temp[1]%100, bat[1]);
-    sprintf(body3, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", id3[0], id3[1], id3[2], id3[3], id3[4], id3[5], temp[2]/100, temp[2]%100, bat[2]);
-    sprintf(body4, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"}]\r\n", id4[0], id4[1], id4[2], id4[3], id4[4], id4[5], temp[3]/100, temp[3]%100, bat[3]);
+    sprintf(body1, "[{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", id1[0], id1[1], id1[2], id1[3], id1[4], id1[5], temp[0]/100, temp[0]%100, bat[0]);
+    sprintf(body2, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", id2[0], id2[1], id2[2], id2[3], id2[4], id2[5], temp[1]/100, temp[1]%100, bat[1]);
+    sprintf(body3, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", id3[0], id3[1], id3[2], id3[3], id3[4], id3[5], temp[2]/100, temp[2]%100, bat[2]);
+    sprintf(body4, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"}]\r\n", id4[0], id4[1], id4[2], id4[3], id4[4], id4[5], temp[3]/100, temp[3]%100, bat[3]);
     // sprintf(body5, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", id5[0], id5[1], id5[2], id5[3], id5[4], id5[5], temp[4]/100, temp[4]%100, bat[4]);
     // sprintf(body6, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", id6[0], id6[1], id6[2], id6[3], id6[4], id6[5], temp[5]/100, temp[5]%100, bat[5]);
     // sprintf(body7, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", id7[0], id7[1], id7[2], id7[3], id7[4], id7[5], temp[6]/100, temp[6]%100, bat[6]);
     // sprintf(body8, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"}]\r\n", id8[0], id8[1], id8[2], id8[3], id8[4], id8[5], temp[7]/100, temp[7]%100, bat[7]);
 
     sprintf(body, "%s%s%s%s", body1, body2, body3, body4);
-    // ESP_LOGW(TAG, "%s", body);
+    ESP_LOGW(TAG, "%s", body);
 
-    uart_write_bytes(UART1, (const char *) AT, sizeof(AT));
-    vTaskDelay(DELAY_TIME_POST);
     uart_write_bytes(UART1, (const char *) AT1, sizeof(AT1));
     vTaskDelay(DELAY_TIME_POST);
     uart_write_bytes(UART1, (const char *) AT2, sizeof(AT2));
