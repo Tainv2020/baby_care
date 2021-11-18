@@ -5,7 +5,10 @@
 #include "freertos/queue.h"
 #include "driver/uart.h"
 #include "esp_log.h"
+#include "esp_gatt_defs.h"
+#include "common_ble.h"
 #include "app_uart.h"
+#include "app_convert.h"
 
 static const char *TAG = "uart_events";
 static const char *TAG_UART_SIM800 = "SIM800";
@@ -14,7 +17,6 @@ static volatile bool g_post_http_status = false;
 static volatile bool g_start_parse_data = false;
 
 #define EX_UART_NUM 0
-
 #define BUF_SIZE (1024)
 #define RX_BUF_SIZE (BUF_SIZE)
 
@@ -23,18 +25,20 @@ static volatile bool g_start_parse_data = false;
 #define ECHO_TEST_RTS (UART_PIN_NO_CHANGE)
 #define ECHO_TEST_CTS (UART_PIN_NO_CHANGE)
 #define ECHO_TASK_STACK_SIZE    (CONFIG_EXAMPLE_TASK_STACK_SIZE)
-#define DELAY_TIME 250
+#define DELAY_TIME_GET  250
+#define DELAY_TIME_POST 100
 
 /* AT command */
 uint8_t AT[] = "AT\r\n";
 uint8_t AT_NO_RESPOND[] = "ATE0\r\n";
+uint8_t AT_RESPOND[] = "ATE1\r\n";
 uint8_t AT1[] = "AT+SAPBR=3,1,\"Contype\",\"GPRS\"\r\n";
 uint8_t AT2[] = "AT+SAPBR=3,1,\"APN\",\"airtelgprs.com\"\r\n";
 uint8_t AT3[] = "AT+SAPBR=1,1\r\n";
 uint8_t AT4[] = "AT+SAPBR=2,1\r\n";
 uint8_t AT5[] = "AT+HTTPINIT\r\n";
 uint8_t AT6[] = "AT+HTTPPARA=\"CID\",1\r\n";
-uint8_t AT7[] = "AT+HTTPPARA=\"URL\",\"http://bc-api.gl-sci.com/api/Common/SubmitHistoryData\"\r\n";
+uint8_t AT7[] = "AT+HTTPPARA=\"URL\",\"http://bc-api.gl-sci.com/api/Common/SubmitHistoryDatas\"\r\n";
 uint8_t AT8[] = "AT+HTTPPARA=\"CONTENT\",\"application/json\"\r\n";
 uint8_t AT9[] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"C9:AD:7F:93:4C:DE\",\"dataTypeID\": 1,\"dataValue\": 33,\"batteryValue\": 22,\"isWarning\": false,\"securityKey\": \"123456\"}\r\n";
 char AT10[500];
@@ -46,6 +50,17 @@ uint8_t AT_GET1[] = "AT+HTTPPARA=\"URL\",\"http://bc-api.gl-sci.com/api/Common/G
 uint8_t AT_GET2[] = "AT+HTTPACTION=0\r\n";
 uint8_t AT_GET3[] = "AT+HTTPSSL=1\r\n";
 uint8_t AT_GET4[] = "AT+HTTPSSL?\r\n";
+
+/* Buff use for POST */
+static char body[2000];
+static char body1[200];
+static char body2[200];
+static char body3[200];
+static char body4[200];
+static char body5[200];
+static char body6[200];
+static char body7[200];
+static char body8[200];
 
 static QueueHandle_t uart0_queue;
 static QueueHandle_t uart1_queue;
@@ -149,7 +164,7 @@ static void uart1_event_task(void *pvParameters)
                 g_start_parse_data = false;
             }
             /* In POST progress */
-            else if(g_post_http_status)
+            if(g_post_http_status)
             {
                 /* Call callback function */
                 app_uart_data_cb(UART1, uart_rx_buf, len);
@@ -181,39 +196,45 @@ void app_uart1_sim800_init(uint8_t uart_instance, uint32_t baudrate, uint8_t tx_
 }
 
 /* POST data to sever */
-void app_uart_post(uint8_t temp, uint8_t battery)
+void app_uart_post(esp_bd_addr_t id1, esp_bd_addr_t id2, esp_bd_addr_t id3, esp_bd_addr_t id4, uint32_t temp[], uint8_t bat[])
 {
-    char body[500];
-    sprintf(body, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"C9:AD:7F:93:4C:DE\",\"dataTypeID\": 1,\"dataValue\": %d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"}\r\n", temp, battery);
+    sprintf(body1, "[{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", id1[0], id1[1], id1[2], id1[3], id1[4], id1[5], temp[0]/100, temp[0]%100, bat[0]);
+    sprintf(body2, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", id2[0], id2[1], id2[2], id2[3], id2[4], id2[5], temp[1]/100, temp[1]%100, bat[1]);
+    sprintf(body3, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", id3[0], id3[1], id3[2], id3[3], id3[4], id3[5], temp[2]/100, temp[2]%100, bat[2]);
+    sprintf(body4, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"}]\r\n", id4[0], id4[1], id4[2], id4[3], id4[4], id4[5], temp[3]/100, temp[3]%100, bat[3]);
+    // sprintf(body5, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", id5[0], id5[1], id5[2], id5[3], id5[4], id5[5], temp[4]/100, temp[4]%100, bat[4]);
+    // sprintf(body6, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", id6[0], id6[1], id6[2], id6[3], id6[4], id6[5], temp[5]/100, temp[5]%100, bat[5]);
+    // sprintf(body7, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", id7[0], id7[1], id7[2], id7[3], id7[4], id7[5], temp[6]/100, temp[6]%100, bat[6]);
+    // sprintf(body8, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%d:%d:%d:%d:%d:%d\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"}]\r\n", id8[0], id8[1], id8[2], id8[3], id8[4], id8[5], temp[7]/100, temp[7]%100, bat[7]);
+
+    sprintf(body, "%s%s%s%s", body1, body2, body3, body4);
+    ESP_LOGW(TAG, "%s", body);
 
     uart_write_bytes(UART1, (const char *) AT1, sizeof(AT1));
-    vTaskDelay(DELAY_TIME);
+    vTaskDelay(DELAY_TIME_POST);
     uart_write_bytes(UART1, (const char *) AT2, sizeof(AT2));
-    vTaskDelay(DELAY_TIME);
+    vTaskDelay(DELAY_TIME_POST);
     uart_write_bytes(UART1, (const char *) AT3, sizeof(AT3));
-    vTaskDelay(DELAY_TIME);
+    vTaskDelay(DELAY_TIME_POST);
     uart_write_bytes(UART1, (const char *) AT4, sizeof(AT4));
-    vTaskDelay(DELAY_TIME);
+    vTaskDelay(DELAY_TIME_POST);
     uart_write_bytes(UART1, (const char *) AT5, sizeof(AT5));
-    vTaskDelay(DELAY_TIME);
-    uart_write_bytes(UART1, (const char *) AT6, sizeof(AT6));
-    vTaskDelay(DELAY_TIME);
+    vTaskDelay(DELAY_TIME_POST);
     uart_write_bytes(UART1, (const char *) AT7, sizeof(AT7));
-    vTaskDelay(DELAY_TIME);
+    vTaskDelay(DELAY_TIME_POST);
     uart_write_bytes(UART1, (const char *) AT8, sizeof(AT8));
-    vTaskDelay(DELAY_TIME);
+    vTaskDelay(DELAY_TIME_POST);
     sprintf(AT10, "AT+HTTPDATA=%d,\"10000\"\r\n", strlen(body));
     uart_write_bytes(UART1, (const char *) AT10, sizeof(AT10));
-    vTaskDelay(DELAY_TIME);
+    vTaskDelay(DELAY_TIME_POST);
     uart_write_bytes(UART1, (const char *) body, sizeof(body));
-    vTaskDelay(DELAY_TIME);
+    vTaskDelay(DELAY_TIME_POST);
+    uart_write_bytes(UART1, (const char *) AT11, sizeof(AT11));
     /* Start read respond from POST progress */
     g_post_http_status = true;
-    uart_write_bytes(UART1, (const char *) AT11, sizeof(AT11));
-    vTaskDelay(DELAY_TIME);
-    /* Stop POST progress */
+    vTaskDelay(500);
+    /* Clear variable g_post_http_status */
     g_post_http_status = false;
-    uart_write_bytes(UART1, (const char *) AT12, sizeof(AT12));
 }
 
 void app_uart_get(void)
@@ -221,25 +242,25 @@ void app_uart_get(void)
     while(!g_get_http_status)
     {
         uart_write_bytes(UART1, (const char *) AT_NO_RESPOND, sizeof(AT_NO_RESPOND));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT1, sizeof(AT1));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT2, sizeof(AT2));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT3, sizeof(AT3));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT4, sizeof(AT4));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT5, sizeof(AT5));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT6, sizeof(AT6));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT_GET1, sizeof(AT_GET1));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT8, sizeof(AT8));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT_GET2, sizeof(AT_GET2));
-        vTaskDelay(DELAY_TIME);
+        vTaskDelay(DELAY_TIME_GET);
         uart_write_bytes(UART1, (const char *) AT12, sizeof(AT12));
         g_start_parse_data = true;
         vTaskDelay(500);

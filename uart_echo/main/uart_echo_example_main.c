@@ -7,6 +7,7 @@
    CONDITIONS OF ANY KIND, either express or implied.
 */
 #include <stdio.h>
+#include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
@@ -16,6 +17,7 @@
 #include "sdkconfig.h"
 #include "driver/timer.h"
 #include "lib_gpio.h"
+#include "esp_log.h"
 
 /**
  * This is an example which echos any data it receives on configured UART back to the sender,
@@ -39,12 +41,13 @@
 #define ECHO_TASK_STACK_SIZE    (CONFIG_EXAMPLE_TASK_STACK_SIZE)
 
 #define BUF_SIZE (1024)
-#define DELAY_TIME 80
+#define DELAY_TIME 200
 
 /* Timer */
 #define MAX_TIMER 3
 #define TIMER_SIM800_ID 0
 TimerHandle_t xTimers[MAX_TIMER];
+static const char *TAG = "uart_events";
 
 /* AT command */
 uint8_t AT[] = "AT\r\n";
@@ -55,11 +58,11 @@ uint8_t AT3[] = "AT+SAPBR=1,1\r\n";
 uint8_t AT4[] = "AT+SAPBR=2,1\r\n";
 uint8_t AT5[] = "AT+HTTPINIT\r\n";
 uint8_t AT6[] = "AT+HTTPPARA=\"CID\",1\r\n";
-uint8_t AT7[] = "AT+HTTPPARA=\"URL\",\"http://bc-api.gl-sci.com/api/Common/GetDeviceList/hub00001/123456\"\r\n";
+uint8_t AT7[] = "AT+HTTPPARA=\"URL\",\"http://bc-api.gl-sci.com/api/Common/SubmitHistoryDatas\"\r\n";
 uint8_t AT8[] = "AT+HTTPPARA=\"CONTENT\",\"application/json\"\r\n";
 uint8_t AT9[] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"C9:AD:7F:93:4C:DE\",\"dataTypeID\": 1,\"dataValue\": 33,\"batteryValue\": 22,\"isWarning\": false,\"securityKey\": \"123456\"}\r\n";
 char AT10[500];
-uint8_t AT11[] = "AT+HTTPACTION=0\r\n";
+uint8_t AT11[] = "AT+HTTPACTION=1\r\n";
 uint8_t AT12[] = "AT+HTTPREAD\r\n";
 uint8_t AT13[] = "AT+HTTPTERM\r\n";
 
@@ -68,6 +71,7 @@ uint8_t AT13[] = "AT+HTTPTERM\r\n";
 /* UART functions */
 void sim800_init(void);
 void sim800_get(void);
+void task1(void);
 
 static void echo_task1(void *arg)
 {
@@ -79,7 +83,11 @@ static void echo_task1(void *arg)
         uart_write_bytes(UART1, (const char *) data, len);
         if(len == 1)
         {
-            sim800_get();
+            sim800_init();
+        }
+        else if(len == 2)
+        {
+            task1();
         }
     }
 }
@@ -98,6 +106,19 @@ static void echo_task2(void *arg)
 
 void sim800_init(void)
 {
+    char body[2000];
+    char body1[200] = "[{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"239:106:242:3:173:123\",\"dataTypeID\": 1,\"dataValue\": 29. 0,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
+    char body2[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"201:173:127:147:76:222\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
+    char body3[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"214:254:250:246:104:38\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
+    char body4[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"251:11:43:151:234:14\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"}]\r\n";
+    // char body5[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"ef:6a:f2:03:ad:7b\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
+    // char body6[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"ef:6a:f2:03:ad:7b\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
+    // char body7[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"ef:6a:f2:03:ad:7b\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
+    // char body8[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"ef:6a:f2:03:ad:7b\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"}]\r\n";
+
+    sprintf(body, "%s%s%s%s", body1, body2, body3, body4);
+    ESP_LOGW(TAG, "%s", body);
+    
     uart_write_bytes(UART1, (const char *) AT, sizeof(AT));
     vTaskDelay(DELAY_TIME);
     uart_write_bytes(UART1, (const char *) AT1, sizeof(AT1));
@@ -107,6 +128,19 @@ void sim800_init(void)
     uart_write_bytes(UART1, (const char *) AT3, sizeof(AT3));
     vTaskDelay(DELAY_TIME);
     uart_write_bytes(UART1, (const char *) AT4, sizeof(AT4));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT5, sizeof(AT5));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT7, sizeof(AT7));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT8, sizeof(AT8));
+    vTaskDelay(DELAY_TIME);
+    sprintf(AT10, "AT+HTTPDATA=%d,\"10000\"\r\n", strlen(body));
+    uart_write_bytes(UART1, (const char *) AT10, sizeof(AT10));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) body, sizeof(body));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT11, sizeof(AT11));
 }
 
 void sim800_get(void)
@@ -131,6 +165,18 @@ void sim800_get(void)
     vTaskDelay(200);
     uart_write_bytes(UART1, (const char *) AT12, sizeof(AT12));
     vTaskDelay(200);
+}
+
+void task1(void)
+{
+    uart_write_bytes(UART1, (const char *) AT7, sizeof(AT7));
+    vTaskDelay(DELAY_TIME);
+    sprintf(AT10, "AT+HTTPDATA=%d,\"10000\"\r\n", sizeof(AT9));
+    uart_write_bytes(UART1, (const char *) AT10, sizeof(AT10));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT9, sizeof(AT9));
+    vTaskDelay(DELAY_TIME);
+    uart_write_bytes(UART1, (const char *) AT11, sizeof(AT11));
 }
 
 /* Soft timer callback */
@@ -196,7 +242,7 @@ void app_main(void)
     xTimers[TIMER_SIM800_ID] = xTimerCreate("timer task for init sim800", pdMS_TO_TICKS(8000), pdFALSE, (void *)0, vTimerCallback);
 
     /* Create task */ 
-    xTaskCreate(echo_task1, "uart0_task", ECHO_TASK_STACK_SIZE, NULL, 10, NULL);
+    xTaskCreate(echo_task1, "uart0_task", 8000, NULL, 10, NULL);
     xTaskCreate(echo_task2, "uart1_task", ECHO_TASK_STACK_SIZE, NULL, 11, NULL);
 
     /* Start timer */ 

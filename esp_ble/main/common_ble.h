@@ -6,6 +6,8 @@
 #include <esp_event.h>
 ESP_EVENT_DECLARE_BASE(EVENT_BLE);
 #define GATTS_SUPPORT    10
+#define MAX_DEVICE_NUM 4
+
 enum 
 {
     EVENT_BLE_START_SCAN = 0,
