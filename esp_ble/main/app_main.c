@@ -14,18 +14,26 @@
 #include "app_timer.h"
 #include "app_convert.h"
 
-uint32_t g_arr_temparature[MAX_DEVICE_NUM];
-uint8_t g_arr_battery[MAX_DEVICE_NUM];
+#define MAX_POST_FALURE 2
 
 static const char *TAG = "MAIN_APP";
 static const char *TAG_GET = "MAIN_APP_GET";
 static const char *TAG_POST = "MAIN_APP_POST";
 static uint8_t index_for_connected_to_peer = 0;
+static uint8_t g_scan_device_counter = 0;
+
+/* Buffer temparature and battery */
+uint32_t g_arr_temparature[MAX_DEVICE_NUM];
+uint8_t g_arr_battery[MAX_DEVICE_NUM];
+
 //static uint8_t index_pre_for_connected_to_peer = 0;
 extern ble_device_inst_t ble_device_table[GATTS_SUPPORT];
-static bool g_get_http_status = false;
-static bool g_post_http_status = false;
-static bool g_post_http_start = false;
+
+/* Status GET and POST */
+static bool g_get_http_status = false; /* To inform GET progress */
+static bool g_post_http_status = false; /* To inform POST in progress */
+static bool g_post_http_start = false; /* To start POST progress */
+static uint8_t g_post_http_falure_counter = 0; /* POST falure counter */
 
 /* Status after read devices */
 static bool g_status_read_all_device[MAX_DEVICE_NUM] = {false, false, false, false, false, false, false, false};
@@ -51,7 +59,7 @@ void app_uart_rx_data_callback(uint8_t uart_instance, uint8_t *dta, uint16_t len
 /* Timer callback */
 void vTimerCallback(TimerHandle_t pxTimer);
 /* Check status read all devices */
-static bool app_status_read_all_devices(void);
+static uint8_t app_status_read_all_devices(void);
 /* Update status all devices */
 static void app_update_status_all_devices(bool status);
 
@@ -83,7 +91,7 @@ void app_main(void)
 
     while(1)
     {
-        if(g_post_http_start)
+        if(g_post_http_start && (g_post_http_falure_counter < MAX_POST_FALURE))
         {
             g_post_http_start = false;
             /* Start POST */
@@ -103,6 +111,27 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
         if(event_id == EVENT_BLE_START_SCAN)
         {
             ESP_LOGW(TAG,"EVENT_BLE_START_SCAN");
+            /* Times scan ble devices */
+            g_scan_device_counter += 1;
+            ESP_LOGE(TAG,"Counter scan: %d", g_scan_device_counter);
+
+            if((g_scan_device_counter > MAX_DEVICE_NUM) && (app_status_read_all_devices() != 0))
+            {
+                /* To start POST progress */
+                g_post_http_start = true; 
+                /* To inform POST in progress */
+                g_post_http_status = true;
+                g_scan_device_counter = 0;
+                /* Stop timer 0 */
+                timeout_for_read_data_stop();
+                /* Stop timer 1 */
+                time_stop_to_connect_device_next_start();
+            }
+
+            if(g_scan_device_counter > MAX_DEVICE_NUM)
+            {
+                g_scan_device_counter = 0;
+            }
         }
         else if(event_id == EVENT_BLE_STOP_SCAN)
         {
@@ -128,9 +157,10 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
             g_status_read_all_device[index_for_connected_to_peer] = true;
 
             /* Verify all device was read */
-            if(app_status_read_all_devices())
+            if(app_status_read_all_devices() == MAX_DEVICE_NUM)
             {
                 g_post_http_start = true;
+                g_scan_device_counter = 0;
                 /* Stop timer 0 */
                 timeout_for_read_data_stop();
                 /* Stop timer 1 */
@@ -190,7 +220,9 @@ void vTimerCallback( TimerHandle_t pxTimer )
      // Which timer expired?
     lArrayIndex = ( int32_t ) pvTimerGetTimerID( pxTimer ); 
 
-    if((lArrayIndex == 0) && g_get_http_status && !g_post_http_start) /* Timer 0 */
+    /* Timer 0 */
+    /* Run timer 0 when GET was done and POST not yet in progress */
+    if((lArrayIndex == 0) && g_get_http_status && !g_post_http_status)
     {
         ESP_LOGE(TAG,"Timeout. Can't connect to device");
         ESP_LOGW(TAG,"Try next..");
@@ -230,14 +262,18 @@ void vTimerCallback( TimerHandle_t pxTimer )
                     break;
                 }
             }
-        }  
+        }
     }
-    else if((lArrayIndex == 1) && g_get_http_status) /* Timer 1 */
+    /* Timer 1 */
+    /* Run timer 1 when GET was done and POST not yet in progress  */
+    else if((lArrayIndex == 1) && g_get_http_status && !g_post_http_status)
     {
         ESP_LOGE(TAG,"Start scan ble");
         app_ble_start_scan(10);
     }
-    else if(lArrayIndex == 2) /* Timer 2 */
+    /* Timer 2 */
+    /* Run once after power on */
+    else if(lArrayIndex == 2)
     {
         /* Get from server */
         ESP_LOGE(TAG,"Start GET data from HTTP");
@@ -295,16 +331,24 @@ void app_uart_rx_data_callback(uint8_t uart_instance, uint8_t *dta, uint16_t len
             {
                 ESP_LOGI(TAG_POST, "%s", dta);
                 /* Verify after POST */
-                if(app_confirm_post_is_ok(dta, length))
+                /* If POST is ok or POST falure = limit times */
+                if(app_confirm_post_is_ok(dta, length) || (g_post_http_falure_counter == MAX_POST_FALURE))
                 {
+                    /* Reset to run timer 0 and timer 1 */
+                    g_post_http_status = false;
                     /* Reset all status devices */
-                    app_update_status_all_devices(false);
+                     app_update_status_all_devices(false);
+                    /* Reset g_post_http_falure_counter */
+                     g_post_http_falure_counter = 0;
                     /* Start timer to scan next device */
                     time_wait_to_connect_device_next_start();
                 }
                 else /* If POST falure, enable g_post_http_start to POST again */
                 {
+                    /* Set g_post_http_start to start POST progress again */
                     g_post_http_start = true;
+                    /* Update falure POST times */
+                    g_post_http_falure_counter += 1;
                 }
             }
         }
@@ -397,7 +441,7 @@ static bool app_confirm_post_is_ok(uint8_t data[], uint8_t length)
     }
     if((data[17] == data_compare[17]) && (data[18] == data_compare[18]) && (data[19] == data_compare[19])) /* Check 200 */
     {
-        ESP_LOGI(TAG_POST, "%c%c%c", data[18], data[19], data[20]);
+        //ESP_LOGI(TAG_POST, "%c%c%c", data[18], data[19], data[20]);
         ESP_LOGW(TAG_POST, "POST to HTTP success");
     }
     else
@@ -410,17 +454,17 @@ static bool app_confirm_post_is_ok(uint8_t data[], uint8_t length)
 }
 
 /* Check status read all devices */
-static bool app_status_read_all_devices(void)
+static uint8_t app_status_read_all_devices(void)
 {
-    bool retVal = true;
+    /* Return number devices read avaiable */
+    uint8_t retVal = 0; 
     uint8_t count = 0;
     
     for(count = 0; count < MAX_DEVICE_NUM; count ++)
     {
-        if(!g_status_read_all_device[count])
+        if(g_status_read_all_device[count])
         {
-            retVal = false;
-            break;
+            retVal += 1;
         }
     }
 
