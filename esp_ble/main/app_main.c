@@ -114,24 +114,6 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
             /* Times scan ble devices */
             g_scan_device_counter += 1;
             ESP_LOGE(TAG,"Counter scan: %d", g_scan_device_counter);
-
-            if((g_scan_device_counter > MAX_DEVICE_NUM) && (app_status_read_all_devices() != 0))
-            {
-                /* To start POST progress */
-                g_post_http_start = true; 
-                /* To inform POST in progress */
-                g_post_http_status = true;
-                g_scan_device_counter = 0;
-                /* Stop timer 0 */
-                timeout_for_read_data_stop();
-                /* Stop timer 1 */
-                time_stop_to_connect_device_next_start();
-            }
-
-            if(g_scan_device_counter > MAX_DEVICE_NUM)
-            {
-                g_scan_device_counter = 0;
-            }
         }
         else if(event_id == EVENT_BLE_STOP_SCAN)
         {
@@ -159,7 +141,10 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
             /* Verify all device was read */
             if(app_status_read_all_devices() == MAX_DEVICE_NUM)
             {
-                g_post_http_start = true;
+                /* To start POST progress */
+                g_post_http_start = true; 
+                /* To inform POST in progress */
+                g_post_http_status = true;
                 g_scan_device_counter = 0;
                 /* Stop timer 0 */
                 timeout_for_read_data_stop();
@@ -167,7 +152,7 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
                 time_stop_to_connect_device_next_start();
             }
 
-            if(!g_post_http_start)
+            if(!g_post_http_status)
             {
                 bool found = false;
                 do
@@ -226,40 +211,62 @@ void vTimerCallback( TimerHandle_t pxTimer )
     {
         ESP_LOGE(TAG,"Timeout. Can't connect to device");
         ESP_LOGW(TAG,"Try next..");
-        bool found = false;
-        do
+
+        if((g_scan_device_counter > MAX_DEVICE_NUM) && (app_status_read_all_devices() != 0))
         {
-            index_for_connected_to_peer += 1;
-            if(index_for_connected_to_peer >= MAX_DEVICE_NUM)
+            /* To start POST progress */
+            g_post_http_start = true; 
+            /* To inform POST in progress */
+            g_post_http_status = true;
+            g_scan_device_counter = 0;
+            /* Stop timer 0 */
+            timeout_for_read_data_stop();
+            /* Stop timer 1 */
+            time_stop_to_connect_device_next_start();
+        }
+
+        if(g_scan_device_counter > MAX_DEVICE_NUM)
+        {
+            g_scan_device_counter = 0;
+        }
+
+        if(!g_post_http_status)
+        {
+            bool found = false;
+            do
+            {
+                index_for_connected_to_peer += 1;
+                if(index_for_connected_to_peer >= MAX_DEVICE_NUM)
+                {
+                    index_for_connected_to_peer = 0;
+                }
+            } while (g_status_read_all_device[index_for_connected_to_peer]);
+            
+            if(ble_device_table[index_for_connected_to_peer].slot_is_used)
+            {
+                found = true;
+                ESP_LOGW(TAG,"Found. Wait 3s..");
+                app_ble_set_device_to_connect(ble_device_table[index_for_connected_to_peer].ble_addr);
+                time_wait_to_connect_device_next_start();       //wait 3s
+            }
+
+            if(index_for_connected_to_peer >= GATTS_SUPPORT)
             {
                 index_for_connected_to_peer = 0;
             }
-        } while (g_status_read_all_device[index_for_connected_to_peer]);
-        
-        if(ble_device_table[index_for_connected_to_peer].slot_is_used)
-        {
-            found = true;
-            ESP_LOGW(TAG,"Found. Wait 3s..");
-            app_ble_set_device_to_connect(ble_device_table[index_for_connected_to_peer].ble_addr);
-            time_wait_to_connect_device_next_start();       //wait 3s
-        }
 
-        if(index_for_connected_to_peer >= GATTS_SUPPORT)
-        {
-            index_for_connected_to_peer = 0;
-        }
-
-        if(!found)      // reset turn
-        {
-            for(int i=0;i<GATTS_SUPPORT;i++)
+            if(!found)      // reset turn
             {
-                if(ble_device_table[i].slot_is_used)
+                for(int i=0;i<GATTS_SUPPORT;i++)
                 {
-                    ESP_LOGW(TAG,"Found. Wait 3s..");
-                    index_for_connected_to_peer = i;
-                    app_ble_set_device_to_connect(ble_device_table[index_for_connected_to_peer].ble_addr);
-                    time_wait_to_connect_device_next_start();
-                    break;
+                    if(ble_device_table[i].slot_is_used)
+                    {
+                        ESP_LOGW(TAG,"Found. Wait 3s..");
+                        index_for_connected_to_peer = i;
+                        app_ble_set_device_to_connect(ble_device_table[index_for_connected_to_peer].ble_addr);
+                        time_wait_to_connect_device_next_start();
+                        break;
+                    }
                 }
             }
         }
@@ -337,9 +344,9 @@ void app_uart_rx_data_callback(uint8_t uart_instance, uint8_t *dta, uint16_t len
                     /* Reset to run timer 0 and timer 1 */
                     g_post_http_status = false;
                     /* Reset all status devices */
-                     app_update_status_all_devices(false);
+                    app_update_status_all_devices(false);
                     /* Reset g_post_http_falure_counter */
-                     g_post_http_falure_counter = 0;
+                    g_post_http_falure_counter = 0;
                     /* Start timer to scan next device */
                     time_wait_to_connect_device_next_start();
                 }
