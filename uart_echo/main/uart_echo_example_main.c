@@ -107,10 +107,10 @@ static void echo_task2(void *arg)
 void sim800_init(void)
 {
     char body[2000];
-    char body1[200] = "[{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"239:106:242:3:173:123\",\"dataTypeID\": 1,\"dataValue\": 29. 0,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
-    char body2[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"201:173:127:147:76:222\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
-    char body3[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"214:254:250:246:104:38\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
-    char body4[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"251:11:43:151:234:14\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"}]\r\n";
+    char body1[200] = "[{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"ef:6a:f2:03:ad:7b\",\"dataTypeID\": 1,\"dataValue\": 29. 0,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
+    char body2[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"C9:AD:7F:93:4C:DE\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
+    char body3[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"D6:FE:FA:F6:68:26\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
+    char body4[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"FB:0B:2B:97:EA:0E\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"}]\r\n";
     // char body5[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"ef:6a:f2:03:ad:7b\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
     // char body6[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"ef:6a:f2:03:ad:7b\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";
     // char body7[200] = "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"ef:6a:f2:03:ad:7b\",\"dataTypeID\": 1,\"dataValue\": 29,\"batteryValue\": 33,\"isWarning\": false,\"securityKey\": \"123456\"},";

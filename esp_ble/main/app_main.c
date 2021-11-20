@@ -378,7 +378,7 @@ static void app_parse_data_from_uart(uint8_t data[], uint32_t length)
             {
                 switch (detect_MAC)
                 {
-                    case 2: /* First ID MAC */
+                    case 2: /* ID 1 MAC */
                     {
                         device1[0] = 0xEF;
                         //device1[0] = app_convert_char2Dec(data[count + 2], data[count + 3]);
@@ -391,7 +391,7 @@ static void app_parse_data_from_uart(uint8_t data[], uint32_t length)
                         // ESP_LOGI(TAG, "%d %d %d %d %d %d", device1[0], device1[1], device1[2], device1[3], device1[4], device1[5]);
                         break;
                     }
-                    case 4: /* Second ID MAC */
+                    case 4: /* ID 2 MAC */
                     {
                         device2[0] = app_convert_char2Dec(data[count + 2], data[count + 3]);
                         device2[1] = app_convert_char2Dec(data[count + 5], data[count + 6]);
@@ -403,7 +403,7 @@ static void app_parse_data_from_uart(uint8_t data[], uint32_t length)
                         // ESP_LOGI(TAG, "%d %d %d %d %d %d", device2[0], device2[1], device2[2], device2[3], device2[4], device2[5]);
                         break;
                     }
-                    case 6: /* Third ID MAC */
+                    case 6: /* ID 3 MAC */
                     {
                         device3[0] = app_convert_char2Dec(data[count + 2], data[count + 3]);
                         device3[1] = app_convert_char2Dec(data[count + 5], data[count + 6]);
@@ -415,7 +415,7 @@ static void app_parse_data_from_uart(uint8_t data[], uint32_t length)
                         // ESP_LOGI(TAG, "%d %d %d %d %d %d", device3[0], device3[1], device3[2], device3[3], device3[4], device3[5]);
                         break;
                     }
-                    case 8: /* Four ID MAC */
+                    case 8: /* ID 4 MAC */
                     {
                         device4[0] = app_convert_char2Dec(data[count + 2], data[count + 3]);
                         device4[1] = app_convert_char2Dec(data[count + 5], data[count + 6]);
@@ -425,6 +425,54 @@ static void app_parse_data_from_uart(uint8_t data[], uint32_t length)
                         device4[5] = app_convert_char2Dec(data[count + 17], data[count + 18]);
 
                         // ESP_LOGI(TAG, "%d %d %d %d %d %d", device4[0], device4[1], device4[2], device4[3], device4[4], device4[5]);
+                        break;
+                    }
+                    case 10: /* ID 5 MAC */
+                    {
+                        device5[0] = app_convert_char2Dec(data[count + 2], data[count + 3]);
+                        device5[1] = app_convert_char2Dec(data[count + 5], data[count + 6]);
+                        device5[2] = app_convert_char2Dec(data[count + 8], data[count + 9]);
+                        device5[3] = app_convert_char2Dec(data[count + 11], data[count + 12]);
+                        device5[4] = app_convert_char2Dec(data[count + 14], data[count + 15]);
+                        device5[5] = app_convert_char2Dec(data[count + 17], data[count + 18]);
+
+                        // ESP_LOGI(TAG, "%d %d %d %d %d %d", device5[0], device5[1], device5[2], device5[3], device5[4], device5[5]);
+                        break;
+                    }
+                    case 12: /* ID 6 MAC */
+                    {
+                        device6[0] = app_convert_char2Dec(data[count + 2], data[count + 3]);
+                        device6[1] = app_convert_char2Dec(data[count + 5], data[count + 6]);
+                        device6[2] = app_convert_char2Dec(data[count + 8], data[count + 9]);
+                        device6[3] = app_convert_char2Dec(data[count + 11], data[count + 12]);
+                        device6[4] = app_convert_char2Dec(data[count + 14], data[count + 15]);
+                        device6[5] = app_convert_char2Dec(data[count + 17], data[count + 18]);
+
+                        // ESP_LOGI(TAG, "%d %d %d %d %d %d", device6[0], device6[1], device6[2], device6[3], device6[4], device6[5]);
+                        break;
+                    }
+                    case 14: /* ID 7 MAC */
+                    {
+                        device7[0] = app_convert_char2Dec(data[count + 2], data[count + 3]);
+                        device7[1] = app_convert_char2Dec(data[count + 5], data[count + 6]);
+                        device7[2] = app_convert_char2Dec(data[count + 8], data[count + 9]);
+                        device7[3] = app_convert_char2Dec(data[count + 11], data[count + 12]);
+                        device7[4] = app_convert_char2Dec(data[count + 14], data[count + 15]);
+                        device7[5] = app_convert_char2Dec(data[count + 17], data[count + 18]);
+
+                        // ESP_LOGI(TAG, "%d %d %d %d %d %d", device7[0], device7[1], device7[2], device7[3], device7[4], device7[5]);
+                        break;
+                    }
+                    case 16: /* ID 8 MAC */
+                    {
+                        device8[0] = app_convert_char2Dec(data[count + 2], data[count + 3]);
+                        device8[1] = app_convert_char2Dec(data[count + 5], data[count + 6]);
+                        device8[2] = app_convert_char2Dec(data[count + 8], data[count + 9]);
+                        device8[3] = app_convert_char2Dec(data[count + 11], data[count + 12]);
+                        device8[4] = app_convert_char2Dec(data[count + 14], data[count + 15]);
+                        device8[5] = app_convert_char2Dec(data[count + 17], data[count + 18]);
+
+                        // ESP_LOGI(TAG, "%d %d %d %d %d %d", device8[0], device8[1], device8[2], device8[3], device8[4], device8[5]);
                         break;
                     }
                     
