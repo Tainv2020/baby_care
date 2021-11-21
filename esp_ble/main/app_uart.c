@@ -196,7 +196,7 @@ void app_uart1_sim800_init(uint8_t uart_instance, uint32_t baudrate, uint8_t tx_
 }
 
 /* POST data to sever */
-void app_uart_post(esp_bd_addr_t id1, esp_bd_addr_t id2, esp_bd_addr_t id3, esp_bd_addr_t id4, uint32_t temp[], uint8_t bat[])
+void app_uart_post(esp_bd_addr_t id1, esp_bd_addr_t id2, esp_bd_addr_t id3, esp_bd_addr_t id4, uint32_t temp[], uint8_t bat[], bool status_post_before)
 {
     uint8_t counter = 0;
     uint8_t counter1 = 0;
@@ -330,20 +330,24 @@ void app_uart_post(esp_bd_addr_t id1, esp_bd_addr_t id2, esp_bd_addr_t id3, esp_
     sprintf(body, "%s%s%s%s", body1, body2, body3, body4);
     ESP_LOGW(TAG, "%s", body);
 
-    uart_write_bytes(UART1, (const char *) AT1, sizeof(AT1));
-    vTaskDelay(DELAY_TIME_POST);
-    uart_write_bytes(UART1, (const char *) AT2, sizeof(AT2));
-    vTaskDelay(DELAY_TIME_POST);
-    uart_write_bytes(UART1, (const char *) AT3, sizeof(AT3));
-    vTaskDelay(DELAY_TIME_POST);
-    uart_write_bytes(UART1, (const char *) AT4, sizeof(AT4));
-    vTaskDelay(DELAY_TIME_POST);
-    uart_write_bytes(UART1, (const char *) AT5, sizeof(AT5));
-    vTaskDelay(DELAY_TIME_POST);
-    uart_write_bytes(UART1, (const char *) AT7, sizeof(AT7));
-    vTaskDelay(DELAY_TIME_POST);
-    uart_write_bytes(UART1, (const char *) AT8, sizeof(AT8));
-    vTaskDelay(DELAY_TIME_POST);
+    if(!status_post_before)
+    {
+        uart_write_bytes(UART1, (const char *) AT1, sizeof(AT1));
+        vTaskDelay(DELAY_TIME_POST);
+        uart_write_bytes(UART1, (const char *) AT2, sizeof(AT2));
+        vTaskDelay(DELAY_TIME_POST);
+        uart_write_bytes(UART1, (const char *) AT3, sizeof(AT3));
+        vTaskDelay(DELAY_TIME_POST);
+        uart_write_bytes(UART1, (const char *) AT4, sizeof(AT4));
+        vTaskDelay(DELAY_TIME_POST);
+        uart_write_bytes(UART1, (const char *) AT5, sizeof(AT5));
+        vTaskDelay(DELAY_TIME_POST);
+        uart_write_bytes(UART1, (const char *) AT7, sizeof(AT7));
+        vTaskDelay(DELAY_TIME_POST);
+        uart_write_bytes(UART1, (const char *) AT8, sizeof(AT8));
+        vTaskDelay(DELAY_TIME_POST);
+    }
+    
     sprintf(AT10, "AT+HTTPDATA=%d,\"10000\"\r\n", strlen(body));
     uart_write_bytes(UART1, (const char *) AT10, sizeof(AT10));
     vTaskDelay(DELAY_TIME_POST);

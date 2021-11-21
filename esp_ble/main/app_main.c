@@ -33,6 +33,7 @@ extern ble_device_inst_t ble_device_table[GATTS_SUPPORT];
 static bool g_get_http_status = false; /* To inform GET progress */
 static bool g_post_http_status = false; /* To inform POST in progress */
 static bool g_post_http_start = false; /* To start POST progress */
+static bool g_post_http_success = false; /* POST success or falure */
 static uint8_t g_post_http_falure_counter = 0; /* POST falure counter */
 
 /* Status after read devices */
@@ -97,7 +98,7 @@ void app_main(void)
             /* Start POST */
             ESP_LOGE(TAG,"Start POST data to server");
             /* POST data to server */
-            app_uart_post(device1, device2, device3, device4, g_arr_temparature, g_arr_battery);
+            app_uart_post(device1, device2, device3, device4, g_arr_temparature, g_arr_battery, g_post_http_success);
         }
         vTaskDelay(1);
     }
@@ -496,12 +497,14 @@ static bool app_confirm_post_is_ok(uint8_t data[], uint8_t length)
     }
     if((data[17] == data_compare[17]) && (data[18] == data_compare[18]) && (data[19] == data_compare[19])) /* Check 200 */
     {
-        //ESP_LOGI(TAG_POST, "%c%c%c", data[18], data[19], data[20]);
+        //ESP_LOGI(TAG_POST, "%c%c%c", data[17], data[18], data[19]);
+        g_post_http_success = true;
         ESP_LOGW(TAG_POST, "POST to HTTP success");
     }
     else
     {
         retVal = false;
+        g_post_http_success = false;
         ESP_LOGE(TAG_POST, "POST to HTTP faile");
     }
 
