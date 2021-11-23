@@ -28,6 +28,9 @@ static volatile bool g_start_parse_data = false;
 #define DELAY_TIME_GET  250
 #define DELAY_TIME_POST 100
 
+/* Status after read devices */
+extern bool g_status_read_all_device[MAX_DEVICE_NUM];
+
 /* AT command */
 uint8_t AT[] = "AT\r\n";
 uint8_t AT_NO_RESPOND[] = "ATE0\r\n";
@@ -282,7 +285,7 @@ void app_uart_post(esp_bd_addr_t id1, esp_bd_addr_t id2, esp_bd_addr_t id3, esp_
         {
             case 1:
             {
-                sprintf(body1, "[{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%s\",\"dataTypeID\": 1,\"dataValue\": %2d.%d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", arr_id, temp[0]/100, temp[0]%100, bat[0]);
+                sprintf(body1, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%s\",\"dataTypeID\": 1,\"dataValue\": %2d.%d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", arr_id, temp[0]/100, temp[0]%100, bat[0]);
                 break;
             }
             case 2:
@@ -297,7 +300,7 @@ void app_uart_post(esp_bd_addr_t id1, esp_bd_addr_t id2, esp_bd_addr_t id3, esp_
             }
             case 4:
             {
-                sprintf(body4, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%s\",\"dataTypeID\": 1,\"dataValue\": %2d.%d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"}]\r\n", arr_id, temp[3]/100, temp[3]%100, bat[3]);
+                sprintf(body4, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%s\",\"dataTypeID\": 1,\"dataValue\": %2d.%d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"}", arr_id, temp[3]/100, temp[3]%100, bat[3]);
                 break;
             }
             // case 5:
@@ -317,7 +320,7 @@ void app_uart_post(esp_bd_addr_t id1, esp_bd_addr_t id2, esp_bd_addr_t id3, esp_
             // }
             // case 8:
             // {
-            //     sprintf(body8, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%s\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"}]\r\n", arr_id, temp[7]/100, temp[7]%100, bat[7]);
+            //     sprintf(body8, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%s\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"}", arr_id, temp[7]/100, temp[7]%100, bat[7]);
             //     break;
             // }
             default:
@@ -327,7 +330,40 @@ void app_uart_post(esp_bd_addr_t id1, esp_bd_addr_t id2, esp_bd_addr_t id3, esp_
         }
     }
 
-    sprintf(body, "%s%s%s%s", body1, body2, body3, body4);
+    sprintf(body, "[");
+    if(g_status_read_all_device[0])
+    {
+        strcat(body, body1);
+    }
+    if(g_status_read_all_device[1])
+    {
+        strcat(body, body2);
+    }
+    if(g_status_read_all_device[2])
+    {
+        strcat(body, body3);
+    }
+    if(g_status_read_all_device[3])
+    {
+        strcat(body, body4);
+    }
+    // if(g_status_read_all_device[4])
+    // {
+    //     strcat(body, body5);
+    // }
+    // if(g_status_read_all_device[5])
+    // {
+    //     strcat(body, body6);
+    // }
+    // if(g_status_read_all_device[6])
+    // {
+    //     strcat(body, body7);
+    // }
+    // if(g_status_read_all_device[7])
+    // {
+    //     strcat(body, body8);
+    // }
+    strcat(body, "]\r\n");
     ESP_LOGW(TAG, "%s", body);
 
     if(!status_post_before)
@@ -347,7 +383,7 @@ void app_uart_post(esp_bd_addr_t id1, esp_bd_addr_t id2, esp_bd_addr_t id3, esp_
         uart_write_bytes(UART1, (const char *) AT8, sizeof(AT8));
         vTaskDelay(DELAY_TIME_POST);
     }
-    
+
     sprintf(AT10, "AT+HTTPDATA=%d,\"10000\"\r\n", strlen(body));
     uart_write_bytes(UART1, (const char *) AT10, sizeof(AT10));
     vTaskDelay(DELAY_TIME_POST);

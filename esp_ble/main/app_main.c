@@ -19,15 +19,17 @@
 static const char *TAG = "MAIN_APP";
 static const char *TAG_GET = "MAIN_APP_GET";
 static const char *TAG_POST = "MAIN_APP_POST";
-static uint8_t index_for_connected_to_peer = 0;
 static uint8_t g_scan_device_counter = 0;
 
 /* Buffer temparature and battery */
 uint32_t g_arr_temparature[MAX_DEVICE_NUM];
 uint8_t g_arr_battery[MAX_DEVICE_NUM];
+/* Status after read devices */
+bool g_status_read_all_device[MAX_DEVICE_NUM] = {false, false, false, false, false, false, false, false};
 
 //static uint8_t index_pre_for_connected_to_peer = 0;
 extern ble_device_inst_t ble_device_table[GATTS_SUPPORT];
+extern uint8_t index_for_connected_to_peer;
 
 /* Status GET and POST */
 static bool g_get_http_status = false; /* To inform GET progress */
@@ -35,9 +37,6 @@ static bool g_post_http_status = false; /* To inform POST in progress */
 static bool g_post_http_start = false; /* To start POST progress */
 static bool g_post_http_success = false; /* POST success or falure */
 static uint8_t g_post_http_falure_counter = 0; /* POST falure counter */
-
-/* Status after read devices */
-static bool g_status_read_all_device[MAX_DEVICE_NUM] = {false, false, false, false, false, false, false, false};
 
 esp_bd_addr_t device1 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 esp_bd_addr_t device2 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -56,9 +55,9 @@ static void app_parse_data_from_uart(uint8_t data[], uint32_t length);
 /* Function parse data to confirm POST is ok */
 static bool app_confirm_post_is_ok(uint8_t data[], uint8_t length);
 /* UART0 & UART1 callback function */
-void app_uart_rx_data_callback(uint8_t uart_instance, uint8_t *dta, uint16_t length);
+static void app_uart_rx_data_callback(uint8_t uart_instance, uint8_t *dta, uint16_t length);
 /* Timer callback */
-void vTimerCallback(TimerHandle_t pxTimer);
+static void vTimerCallback(TimerHandle_t pxTimer);
 /* Check status read all devices */
 static uint8_t app_status_read_all_devices(void);
 /* Update status all devices */
@@ -92,11 +91,13 @@ void app_main(void)
 
     while(1)
     {
-        if(g_post_http_start && (g_post_http_falure_counter < MAX_POST_FALURE))
+        if(g_post_http_start)
         {
             g_post_http_start = false;
             /* Start POST */
             ESP_LOGE(TAG,"Start POST data to server");
+            ESP_LOGE(TAG, "%d %d %d %d", g_arr_temparature[0], g_arr_temparature[1], g_arr_temparature[2], g_arr_temparature[3]);
+            ESP_LOGE(TAG, "BAT: %d %d %d %d", g_arr_battery[0], g_arr_battery[1], g_arr_battery[2], g_arr_battery[3]);
             /* POST data to server */
             app_uart_post(device1, device2, device3, device4, g_arr_temparature, g_arr_battery, g_post_http_success);
         }
@@ -137,6 +138,7 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
             g_arr_temparature[index_for_connected_to_peer] = ble_device_table[index_for_connected_to_peer].ble_data.temperature;
             g_arr_battery[index_for_connected_to_peer] = ble_device_table[index_for_connected_to_peer].ble_data.battery_level;
             ESP_LOGE(TAG,"NUM: %d, tem: %d, bat: %d", index_for_connected_to_peer, ble_device_table[index_for_connected_to_peer].ble_data.temperature, ble_device_table[index_for_connected_to_peer].ble_data.battery_level);
+            ESP_LOGE(TAG, "%d:%d:%d:%d:%d:%d", ble_device_table[index_for_connected_to_peer].ble_addr[0], ble_device_table[index_for_connected_to_peer].ble_addr[1], ble_device_table[index_for_connected_to_peer].ble_addr[2], ble_device_table[index_for_connected_to_peer].ble_addr[3], ble_device_table[index_for_connected_to_peer].ble_addr[4], ble_device_table[index_for_connected_to_peer].ble_addr[5]);
             g_status_read_all_device[index_for_connected_to_peer] = true;
 
             /* Verify all device was read */
@@ -197,7 +199,7 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
     }
 }
 
-void vTimerCallback( TimerHandle_t pxTimer )
+static void vTimerCallback( TimerHandle_t pxTimer )
 {
     int32_t lArrayIndex;
 
@@ -215,6 +217,7 @@ void vTimerCallback( TimerHandle_t pxTimer )
 
         if((g_scan_device_counter > MAX_DEVICE_NUM) && (app_status_read_all_devices() != 0))
         {
+            ESP_LOGW(TAG,"Jump into here");
             /* To start POST progress */
             g_post_http_start = true; 
             /* To inform POST in progress */
@@ -319,7 +322,7 @@ void vTimerCallback( TimerHandle_t pxTimer )
 }
 
 /* UART0 & UART1 callback function */
-void app_uart_rx_data_callback(uint8_t uart_instance, uint8_t *dta, uint16_t length)
+static void app_uart_rx_data_callback(uint8_t uart_instance, uint8_t *dta, uint16_t length)
 {
     if(uart_instance == UART1) /* UART1 */
     {
@@ -340,7 +343,7 @@ void app_uart_rx_data_callback(uint8_t uart_instance, uint8_t *dta, uint16_t len
                 ESP_LOGI(TAG_POST, "%s", dta);
                 /* Verify after POST */
                 /* If POST is ok or POST falure = limit times */
-                if(app_confirm_post_is_ok(dta, length) || (g_post_http_falure_counter == MAX_POST_FALURE))
+                if(app_confirm_post_is_ok(dta, length))
                 {
                     /* Reset to run timer 0 and timer 1 */
                     g_post_http_status = false;
@@ -353,10 +356,25 @@ void app_uart_rx_data_callback(uint8_t uart_instance, uint8_t *dta, uint16_t len
                 }
                 else /* If POST falure, enable g_post_http_start to POST again */
                 {
-                    /* Set g_post_http_start to start POST progress again */
-                    g_post_http_start = true;
                     /* Update falure POST times */
                     g_post_http_falure_counter += 1;
+
+                    if(g_post_http_falure_counter >= MAX_POST_FALURE)
+                    {
+                        /* Reset to run timer 0 and timer 1 */
+                        g_post_http_status = false;
+                        /* Reset all status devices */
+                        app_update_status_all_devices(false);
+                        /* Reset g_post_http_falure_counter */
+                        g_post_http_falure_counter = 0;
+                        /* Start timer to scan next device */
+                        time_wait_to_connect_device_next_start(); 
+                    }
+                    else
+                    {
+                        /* Set g_post_http_start to start POST progress again */
+                        g_post_http_start = true;
+                    }
                 }
             }
         }
@@ -491,13 +509,13 @@ static bool app_confirm_post_is_ok(uint8_t data[], uint8_t length)
     uint8_t counter = 0;
     char data_compare[] = "  +HTTPACTION:  ,200,   \r\n";
 
-    for(counter = 0; counter < length; counter ++)
-    {
-        ESP_LOGI(TAG_POST, "%d, %c %c", counter, data[counter], data_compare[counter]); 
-    }
+    // for(counter = 0; counter < length; counter ++)
+    // {
+    //     ESP_LOGI(TAG_POST, "%d, %c %c", counter, data[counter], data_compare[counter]); 
+    // }
     if((data[17] == data_compare[17]) && (data[18] == data_compare[18]) && (data[19] == data_compare[19])) /* Check 200 */
     {
-        //ESP_LOGI(TAG_POST, "%c%c%c", data[17], data[18], data[19]);
+        ESP_LOGI(TAG_POST, "%c%c%c", data[17], data[18], data[19]);
         g_post_http_success = true;
         ESP_LOGW(TAG_POST, "POST to HTTP success");
     }

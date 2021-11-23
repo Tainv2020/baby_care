@@ -1753,3 +1753,15 @@
 1795	2412	6589495466790478	uart_echo.elf	47977a89eea0843
 2413	2704	6589495469812046	.bin_timestamp	d55138617b7b6cfc
 2707	8496	0	CMakeFiles/flash	3b6723ae269000c
+3	7338	6593838652081573	build.ninja	62874e4206b61524
+43	84	6579941723955036	bootloader-prefix/src/bootloader-stamp/bootloader-build	7f4f66c31c245ba9
+43	84	6579941723955036	bootloader/bootloader.elf	7f4f66c31c245ba9
+43	84	6579941723955036	bootloader/bootloader.bin	7f4f66c31c245ba9
+43	84	6579941723955036	bootloader/bootloader.map	7f4f66c31c245ba9
+45	242	6593838655146315	esp-idf/app_update/CMakeFiles/__idf_app_update.dir/esp_app_desc.c.obj	dfc36886663c4092
+242	279	6593838655566124	esp-idf/app_update/libapp_update.a	ccd18ddfbe462f8
+279	657	6593838659264009	esp-idf/main/CMakeFiles/__idf_main.dir/uart_echo_example_main.c.obj	d11e58fb36935e79
+657	691	6593838659695610	esp-idf/main/libmain.a	843af380cf2cd69b
+692	2260	6593838675060257	esp-idf/esp32/ld/esp32.project.ld	5f2d8ed3e6614300
+2260	2921	6593838681916632	uart_echo.elf	47977a89eea0843
+2922	3096	6593838683740201	.bin_timestamp	d55138617b7b6cfc
