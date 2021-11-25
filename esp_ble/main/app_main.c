@@ -128,12 +128,12 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
         else if(event_id == EVENT_BLE_STOP_SCAN)
         {
             ESP_LOGW(TAG,"EVENT_BLE_STOP_SCAN");
+            /* Is reading */
+            g_reading_devices_status = true;
         }
         else if(event_id == EVENT_BLE_CONNECTED)
         {
             ESP_LOGW(TAG,"EVENT_BLE_CONNECTED");
-            /* Is reading */
-            g_reading_devices_status = true;
         }
         else if(event_id == EVENT_BLE_DISCONNECTED)
         {
