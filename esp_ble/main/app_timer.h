@@ -13,4 +13,8 @@ void timer_change_period_and_start(int index, int ms);
 void timeout_for_start_init_sim800(void);
 /* Timer to start GET datafrom HTTP */
 void timeout_for_get_data_from_http_start(void);
+/* Timeout start for POST process */
+void timeout_for_post_data_to_http_start(void);
+/* Timeout stop for POST process */
+void timeout_for_post_data_to_http_stop(void);
 #endif
