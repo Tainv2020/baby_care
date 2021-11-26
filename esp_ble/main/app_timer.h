@@ -2,7 +2,7 @@
 #define __APP_TIMER_H
 #include <stdio.h>
 #include <stdint.h>
-#define NUM_TIMERS 4
+#define NUM_TIMERS 5
 void app_timer_init(void *callback);
 void timeout_for_read_data_start(void);
 void timeout_for_read_data_stop(void);

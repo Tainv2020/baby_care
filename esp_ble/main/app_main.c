@@ -66,6 +66,8 @@ static void vTimerCallback(TimerHandle_t pxTimer);
 static uint8_t app_status_read_all_devices(void);
 /* Update status all devices */
 static void app_update_status_all_devices(bool status);
+/* Compare MAC id */
+static uint8_t app_compare_mac_id(ble_device_inst_t device_info);
 
 /* Main app function */
 void app_main(void)
@@ -101,7 +103,7 @@ void app_main(void)
             /* Start POST */
             ESP_LOGE(TAG,"Start POST data to server");
             // ESP_LOGE(TAG, "%d %d %d %d", g_arr_temparature[0], g_arr_temparature[1], g_arr_temparature[2], g_arr_temparature[3]);
-            // ESP_LOGE(TAG, "BAT: %d %d %d %d", g_arr_battery[0], g_arr_battery[1], g_arr_battery[2], g_arr_battery[3]);
+            ESP_LOGE(TAG,"Status devices: %d %d %d %d", g_status_read_all_device[0], g_status_read_all_device[1], g_status_read_all_device[2], g_status_read_all_device[3]);
             /* Start timer timeout */
             ESP_LOGE(TAG,"Start timeout for POST precess");
             timeout_for_post_data_to_http_start();
@@ -124,6 +126,10 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
             ESP_LOGE(TAG,"Index: %d", index_for_connected_to_peer);
             /* Times scan ble devices */
             g_scan_device_counter += 1;
+            if(g_scan_device_counter > (MAX_DEVICE_NUM + 1))
+            {
+                g_scan_device_counter = 0;
+            }
         }
         else if(event_id == EVENT_BLE_STOP_SCAN)
         {
@@ -146,12 +152,14 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
             ESP_LOGW(TAG,"EVENT_BLE_GOT_DATA_DONE");
             ESP_LOGW(TAG,"Try next..");
 
+            uint8_t index = app_compare_mac_id(ble_device_table[index_for_connected_to_peer]);
+
             /* Update teamparature and battery to array */
-            g_arr_temparature[index_for_connected_to_peer] = ble_device_table[index_for_connected_to_peer].ble_data.temperature;
-            g_arr_battery[index_for_connected_to_peer] = ble_device_table[index_for_connected_to_peer].ble_data.battery_level;
-            ESP_LOGE(TAG,"NUM: %d, tem: %d, bat: %d", index_for_connected_to_peer, ble_device_table[index_for_connected_to_peer].ble_data.temperature, ble_device_table[index_for_connected_to_peer].ble_data.battery_level);
-            ESP_LOGE(TAG, "%d:%d:%d:%d:%d:%d", ble_device_table[index_for_connected_to_peer].ble_addr[0], ble_device_table[index_for_connected_to_peer].ble_addr[1], ble_device_table[index_for_connected_to_peer].ble_addr[2], ble_device_table[index_for_connected_to_peer].ble_addr[3], ble_device_table[index_for_connected_to_peer].ble_addr[4], ble_device_table[index_for_connected_to_peer].ble_addr[5]);
-            g_status_read_all_device[index_for_connected_to_peer] = true;
+            g_arr_temparature[index] = ble_device_table[index].ble_data.temperature;
+            g_arr_battery[index] = ble_device_table[index].ble_data.battery_level;
+            ESP_LOGE(TAG,"NUM: %d, tem: %d, bat: %d", index, ble_device_table[index].ble_data.temperature, ble_device_table[index].ble_data.battery_level);
+            ESP_LOGE(TAG, "%d:%d:%d:%d:%d:%d", ble_device_table[index].ble_addr[0], ble_device_table[index].ble_addr[1], ble_device_table[index].ble_addr[2], ble_device_table[index].ble_addr[3], ble_device_table[index].ble_addr[4], ble_device_table[index].ble_addr[5]);
+            g_status_read_all_device[index] = true;
 
             /* Verify all device was read */
             if(app_status_read_all_devices() == MAX_DEVICE_NUM)
@@ -171,11 +179,14 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
 
             if(!g_post_http_status)
             {
-                index_for_connected_to_peer += 1;
-                if(index_for_connected_to_peer >= MAX_DEVICE_NUM)
+                do
                 {
-                    index_for_connected_to_peer = 0;
-                }
+                    index_for_connected_to_peer += 1;
+                    if(index_for_connected_to_peer >= MAX_DEVICE_NUM)
+                    {
+                        index_for_connected_to_peer = 0;
+                    }
+                } while (!ble_device_table[index_for_connected_to_peer].slot_is_used);
                 
                 ESP_LOGW(TAG,"Found. Wait 3s..");
                 app_ble_set_device_to_connect(ble_device_table[index_for_connected_to_peer].ble_addr);
@@ -203,7 +214,6 @@ static void vTimerCallback( TimerHandle_t pxTimer )
 
         if((g_scan_device_counter > MAX_DEVICE_NUM) && (app_status_read_all_devices() != 0))
         {
-            ESP_LOGE(TAG,"%d %d %d %d", g_status_read_all_device[0], g_status_read_all_device[1], g_status_read_all_device[2], g_status_read_all_device[3]);
             /* Reset index devices */
             index_for_connected_to_peer = 0;
             /* To start POST progress */
@@ -219,11 +229,14 @@ static void vTimerCallback( TimerHandle_t pxTimer )
 
         if(!g_post_http_status)
         {
-            index_for_connected_to_peer += 1;
-            if(index_for_connected_to_peer >= MAX_DEVICE_NUM)
+            do
             {
-                index_for_connected_to_peer = 0;
-            }
+                index_for_connected_to_peer += 1;
+                if(index_for_connected_to_peer >= MAX_DEVICE_NUM)
+                {
+                    index_for_connected_to_peer = 0;
+                }
+            } while (!ble_device_table[index_for_connected_to_peer].slot_is_used);
 
             ESP_LOGW(TAG,"Found. Wait 3s..");
             app_ble_set_device_to_connect(ble_device_table[index_for_connected_to_peer].ble_addr);
@@ -282,8 +295,6 @@ static void vTimerCallback( TimerHandle_t pxTimer )
         if(!g_server_repsond_status)
         {
             ESP_LOGE(TAG,"No respond from server. Start scan devices again");
-            /* Update server respond status */
-            g_server_repsond_status = false;
             /* Reset to run timer 0 and timer 1 */
             g_post_http_status = false;
             /* Reset all status devices */
@@ -543,4 +554,53 @@ static void app_update_status_all_devices(bool status)
     {
         g_status_read_all_device[count] = status;
     }
+}
+
+/* Compare MAC id */
+static uint8_t app_compare_mac_id(ble_device_inst_t device_info)
+{
+    uint8_t retVal = 0;
+
+    if((device_info.ble_addr[0] == device1[0]) && (device_info.ble_addr[1] == device1[1]) && (device_info.ble_addr[2] == device1[2]) \
+      && (device_info.ble_addr[3] == device1[3]) && (device_info.ble_addr[4] == device1[4]) && (device_info.ble_addr[5] == device1[5]))
+    {
+        retVal = 0;
+    }
+    else if((device_info.ble_addr[0] == device2[0]) && (device_info.ble_addr[1] == device2[1]) && (device_info.ble_addr[2] == device2[2]) \
+      && (device_info.ble_addr[3] == device2[3]) && (device_info.ble_addr[4] == device2[4]) && (device_info.ble_addr[5] == device2[5]))
+    {
+        retVal = 1;
+    }
+    else if((device_info.ble_addr[0] == device3[0]) && (device_info.ble_addr[1] == device3[1]) && (device_info.ble_addr[2] == device3[2]) \
+      && (device_info.ble_addr[3] == device3[3]) && (device_info.ble_addr[4] == device3[4]) && (device_info.ble_addr[5] == device3[5]))
+    {
+        retVal = 2;
+    }
+    else if((device_info.ble_addr[0] == device4[0]) && (device_info.ble_addr[1] == device4[1]) && (device_info.ble_addr[2] == device4[2]) \
+      && (device_info.ble_addr[3] == device4[3]) && (device_info.ble_addr[4] == device4[4]) && (device_info.ble_addr[5] == device4[5]))
+    {
+        retVal = 3;
+    }
+    else if((device_info.ble_addr[0] == device5[0]) && (device_info.ble_addr[1] == device5[1]) && (device_info.ble_addr[2] == device5[2]) \
+      && (device_info.ble_addr[3] == device5[3]) && (device_info.ble_addr[4] == device5[4]) && (device_info.ble_addr[5] == device5[5]))
+    {
+        retVal = 4;
+    }
+    else if((device_info.ble_addr[0] == device6[0]) && (device_info.ble_addr[1] == device6[1]) && (device_info.ble_addr[2] == device6[2]) \
+      && (device_info.ble_addr[3] == device6[3]) && (device_info.ble_addr[4] == device6[4]) && (device_info.ble_addr[5] == device6[5]))
+    {
+        retVal = 5;
+    }
+    else if((device_info.ble_addr[0] == device7[0]) && (device_info.ble_addr[1] == device7[1]) && (device_info.ble_addr[2] == device7[2]) \
+      && (device_info.ble_addr[3] == device7[3]) && (device_info.ble_addr[4] == device7[4]) && (device_info.ble_addr[5] == device7[5]))
+    {
+        retVal = 6;
+    }
+    else if((device_info.ble_addr[0] == device8[0]) && (device_info.ble_addr[1] == device8[1]) && (device_info.ble_addr[2] == device8[2]) \
+      && (device_info.ble_addr[3] == device8[3]) && (device_info.ble_addr[4] == device8[4]) && (device_info.ble_addr[5] == device8[5]))
+    {
+        retVal = 7;
+    }
+
+    return retVal;
 }
