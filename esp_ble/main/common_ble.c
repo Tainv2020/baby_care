@@ -136,6 +136,8 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
     case ESP_GATTC_OPEN_EVT:
         if (param->open.status != ESP_GATT_OK){
             ESP_LOGE(GATTC_TAG, "open failed, status %d", p_data->open.status);
+            /* Start timer scan */
+            time_wait_to_connect_device_next_start();
             break;
         }
         ESP_LOGI(GATTC_TAG, "open success");

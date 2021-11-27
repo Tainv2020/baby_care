@@ -199,7 +199,7 @@ void app_uart1_sim800_init(uint8_t uart_instance, uint32_t baudrate, uint8_t tx_
 }
 
 /* POST data to sever */
-void app_uart_post(esp_bd_addr_t id1, esp_bd_addr_t id2, esp_bd_addr_t id3, esp_bd_addr_t id4, uint32_t temp[], uint8_t bat[], bool status_post_before)
+void app_uart_post(esp_bd_addr_t id1, esp_bd_addr_t id2, esp_bd_addr_t id3, esp_bd_addr_t id4, esp_bd_addr_t id5, esp_bd_addr_t id6, esp_bd_addr_t id7, esp_bd_addr_t id8, uint32_t temp[], uint8_t bat[], bool status_post_before)
 {
     uint8_t counter = 0;
     uint8_t counter1 = 0;
@@ -233,26 +233,26 @@ void app_uart_post(esp_bd_addr_t id1, esp_bd_addr_t id2, esp_bd_addr_t id3, esp_
                     value_id = app_convert_dec2Char(id4[counter]);
                     break;
                 }
-                // case 5:
-                // {
-                //     value_id = app_convert_dec2Char(id5[counter]);
-                //     break;
-                // }
-                // case 6:
-                // {
-                //     value_id = app_convert_dec2Char(id6[counter]);
-                //     break;
-                // }
-                // case 7:
-                // {
-                //     value_id = app_convert_dec2Char(id7[counter]);
-                //     break;
-                // }
-                // case 8:
-                // {
-                //     value_id = app_convert_dec2Char(id8[counter]);
-                //     break;
-                // }
+                case 5:
+                {
+                    value_id = app_convert_dec2Char(id5[counter]);
+                    break;
+                }
+                case 6:
+                {
+                    value_id = app_convert_dec2Char(id6[counter]);
+                    break;
+                }
+                case 7:
+                {
+                    value_id = app_convert_dec2Char(id7[counter]);
+                    break;
+                }
+                case 8:
+                {
+                    value_id = app_convert_dec2Char(id8[counter]);
+                    break;
+                }
                 default:
                 {
                     break;
@@ -303,26 +303,26 @@ void app_uart_post(esp_bd_addr_t id1, esp_bd_addr_t id2, esp_bd_addr_t id3, esp_
                 sprintf(body4, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%s\",\"dataTypeID\": 1,\"dataValue\": %2d.%d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"}", arr_id, temp[3]/100, temp[3]%100, bat[3]);
                 break;
             }
-            // case 5:
-            // {
-            //     sprintf(body5, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%s\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", arr_id, temp[4]/100, temp[4]%100, bat[4]);
-            //     break;
-            // }
-            // case 6:
-            // {
-            //     sprintf(body6, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%s\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", arr_id, temp[5]/100, temp[5]%100, bat[5]);
-            //     break;
-            // }
-            // case 7:
-            // {
-            //     sprintf(body7, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%s\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", arr_id, temp[6]/100, temp[6]%100, bat[6]);
-            //     break;
-            // }
-            // case 8:
-            // {
-            //     sprintf(body8, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%s\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"}", arr_id, temp[7]/100, temp[7]%100, bat[7]);
-            //     break;
-            // }
+            case 5:
+            {
+                sprintf(body5, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%s\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", arr_id, temp[4]/100, temp[4]%100, bat[4]);
+                break;
+            }
+            case 6:
+            {
+                sprintf(body6, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%s\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", arr_id, temp[5]/100, temp[5]%100, bat[5]);
+                break;
+            }
+            case 7:
+            {
+                sprintf(body7, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%s\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"},", arr_id, temp[6]/100, temp[6]%100, bat[6]);
+                break;
+            }
+            case 8:
+            {
+                sprintf(body8, "{\"dataLoggerCode\": \"hub00001\",\"deviceCode\": \"%s\",\"dataTypeID\": 1,\"dataValue\": %2d.%2d,\"batteryValue\": %d,\"isWarning\": false,\"securityKey\": \"123456\"}", arr_id, temp[7]/100, temp[7]%100, bat[7]);
+                break;
+            }
             default:
             {
                 break;
@@ -347,22 +347,22 @@ void app_uart_post(esp_bd_addr_t id1, esp_bd_addr_t id2, esp_bd_addr_t id3, esp_
     {
         strcat(body, body4);
     }
-    // if(g_status_read_all_device[4])
-    // {
-    //     strcat(body, body5);
-    // }
-    // if(g_status_read_all_device[5])
-    // {
-    //     strcat(body, body6);
-    // }
-    // if(g_status_read_all_device[6])
-    // {
-    //     strcat(body, body7);
-    // }
-    // if(g_status_read_all_device[7])
-    // {
-    //     strcat(body, body8);
-    // }
+    if(g_status_read_all_device[4])
+    {
+        strcat(body, body5);
+    }
+    if(g_status_read_all_device[5])
+    {
+        strcat(body, body6);
+    }
+    if(g_status_read_all_device[6])
+    {
+        strcat(body, body7);
+    }
+    if(g_status_read_all_device[7])
+    {
+        strcat(body, body8);
+    }
     strcat(body, "]\r\n");
     ESP_LOGW(TAG, "%s", body);
 

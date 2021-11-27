@@ -108,7 +108,7 @@ void app_main(void)
             ESP_LOGE(TAG,"Start timeout for POST precess");
             timeout_for_post_data_to_http_start();
             /* POST data to server */
-            app_uart_post(device1, device2, device3, device4, g_arr_temparature, g_arr_battery, g_post_http_success);
+            app_uart_post(device1, device2, device3, device4, device5, device6, device7, device8, g_arr_temparature, g_arr_battery, g_post_http_success);
         }
         vTaskDelay(1);
     }
@@ -144,6 +144,8 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
         else if(event_id == EVENT_BLE_DISCONNECTED)
         {
             ESP_LOGW(TAG,"EVENT_BLE_DISCONNECTED");
+            /* Start timer scan */
+            time_wait_to_connect_device_next_start();       //wait 3s
             /* Reading done */
             g_reading_devices_status = false;
         }
@@ -162,7 +164,7 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
             g_status_read_all_device[index] = true;
 
             /* Verify all device was read */
-            if(app_status_read_all_devices() == MAX_DEVICE_NUM)
+            if(app_status_read_all_devices() == (MAX_DEVICE_NUM - 1))
             {
                 /* Reset index devices */
                 index_for_connected_to_peer = 0;
@@ -190,7 +192,6 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
                 
                 ESP_LOGW(TAG,"Found. Wait 3s..");
                 app_ble_set_device_to_connect(ble_device_table[index_for_connected_to_peer].ble_addr);
-                time_wait_to_connect_device_next_start();       //wait 3s
             }
         }
     }
