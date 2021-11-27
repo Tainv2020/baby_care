@@ -98,6 +98,7 @@ static struct gattc_profile_inst gl_profile_tab[PROFILE_NUM] = {
 };
 
 ble_device_inst_t ble_device_table[GATTS_SUPPORT];
+uint8_t index_for_connected_to_peer = 0;
 
 static uint32_t convert_ble_data_to_temperature(uint8_t *p_data, uint16_t value_len)
 {
@@ -135,6 +136,8 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
     case ESP_GATTC_OPEN_EVT:
         if (param->open.status != ESP_GATT_OK){
             ESP_LOGE(GATTC_TAG, "open failed, status %d", p_data->open.status);
+            /* Start timer scan */
+            time_wait_to_connect_device_next_start();
             break;
         }
         ESP_LOGI(GATTC_TAG, "open success");
@@ -331,11 +334,12 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
         ESP_LOGI(GATTC_TAG, "ESP_GATTC_READ_CHAR_EVT, receive read value:");
         // esp_log_buffer_hex(GATTC_TAG, p_data->read.value, p_data->read.value_len);
         printf("battery: %d%%\n", *p_data->read.value);
-        int get_index = app_ble_get_index_in_table(p_data->notify.remote_bda);
-        if(get_index != -1)
-        {
-            ble_device_table[get_index].ble_data.battery_level = *p_data->read.value;
-        }
+        ble_device_table[index_for_connected_to_peer].ble_data.battery_level = *p_data->read.value;
+        // int get_index = app_ble_get_index_in_table(p_data->notify.remote_bda);
+        // if(get_index != -1)
+        // {
+        //     ble_device_table[get_index].ble_data.battery_level = *p_data->read.value;
+        // }
         esp_ble_gattc_close(gattc_if,p_data->connect.conn_id);
         esp_event_post(EVENT_BLE, EVENT_BLE_GOT_DATA_DONE, NULL, 0, portMAX_DELAY);
     }   break;
@@ -348,13 +352,16 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
             ESP_LOGI(GATTC_TAG, "ESP_GATTC_NOTIFY_EVT, receive indicate value:");
         }
         esp_log_buffer_hex(GATTC_TAG, p_data->notify.value, p_data->notify.value_len);
-        int get_index = app_ble_get_index_in_table(p_data->notify.remote_bda);
-        if(get_index != -1)
-        {
-            uint32_t temp = convert_ble_data_to_temperature(p_data->notify.value,p_data->notify.value_len);
-            printf("temperature: %2d.%2d *C\n", temp/100, temp%100);
-            ble_device_table[get_index].ble_data.temperature = temp;
-        }
+        uint32_t temp = convert_ble_data_to_temperature(p_data->notify.value,p_data->notify.value_len);
+        ble_device_table[index_for_connected_to_peer].ble_data.temperature = temp;
+        printf("temperature: %d *C\n", ble_device_table[index_for_connected_to_peer].ble_data.temperature);
+        // int get_index = app_ble_get_index_in_table(p_data->notify.remote_bda);
+        // if(get_index != -1)
+        // {
+        //     uint32_t temp = convert_ble_data_to_temperature(p_data->notify.value,p_data->notify.value_len);
+        //     printf("temperature: %d *C\n", ble_device_table[get_index].ble_data.temperature);
+        //     ble_device_table[get_index].ble_data.temperature = temp;
+        // }
         esp_ble_gattc_read_char( gattc_if,
                                   gl_profile_tab[PROFILE_B_APP_ID].conn_id,
                                   gl_profile_tab[PROFILE_B_APP_ID].char_handle,

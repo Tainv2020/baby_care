@@ -8,7 +8,7 @@ TimerHandle_t xTimers[NUM_TIMERS];
 void app_timer_init(void *callback)
 {
     xTimers[0] = xTimerCreate("TimeoutForReadData",                      // Just a text name, not used by the kernel.
-                            pdMS_TO_TICKS(7000),    // 1000ms.
+                            pdMS_TO_TICKS(1000),    // 1000ms.
                             pdFALSE,                        // The timers will auto-reload themselves when they expire.
                             (void *) 0,                     // Assign each timer a unique id equal to its array index.
                             callback);                // Each timer calls the same callback when it expires.
@@ -19,7 +19,7 @@ void app_timer_init(void *callback)
     }  
 
     xTimers[1] = xTimerCreate("TimeWaitToConnect",                      // Just a text name, not used by the kernel.
-                            pdMS_TO_TICKS(2000),    // 1000ms.
+                            pdMS_TO_TICKS(1000),    // 1000ms.
                             pdFALSE,                        // The timers will auto-reload themselves when they expire.
                             (void *) 1,                     // Assign each timer a unique id equal to its array index.
                             callback);                // Each timer calls the same callback when it expires.
@@ -39,8 +39,18 @@ void app_timer_init(void *callback)
     {
         // The timer was not created.
     }
-}
 
+    xTimers[3] = xTimerCreate("TimeoutForGetAndPostProcess",                      // Just a text name, not used by the kernel.
+                            pdMS_TO_TICKS(50000),    // 1000ms.
+                            pdFALSE,                        // The timers will auto-reload themselves when they expire.
+                            (void *) 3,                     // Assign each timer a unique id equal to its array index.
+                            callback);                // Each timer calls the same callback when it expires.
+                                         
+    if(xTimers[3] == NULL)
+    {
+        // The timer was not created.
+    }
+}
 
 void timeout_for_read_data_start(void)
 {
@@ -79,10 +89,28 @@ void timer_change_period_and_start(int index, int ms)
     xTimerChangePeriod(xTimers[index],ms/portTICK_PERIOD_MS, 0);
 }
 
-/* Timeout to start GET datafrom HTTP */
+/* Timer to start GET datafrom HTTP */
 void timeout_for_get_data_from_http_start(void)
 {
     if(xTimerStart( xTimers[2], 0) != pdPASS )
+    {
+        // The timer could not be set into the Active state.
+    }
+}
+
+/* Timeout start for POST process */
+void timeout_for_post_data_to_http_start(void)
+{
+    if(xTimerStart( xTimers[3], 0) != pdPASS )
+    {
+        // The timer could not be set into the Active state.
+    }
+}
+
+/* Timeout stop for POST process */
+void timeout_for_post_data_to_http_stop(void)
+{
+    if(xTimerStop( xTimers[3], 0) != pdPASS )
     {
         // The timer could not be set into the Active state.
     }
